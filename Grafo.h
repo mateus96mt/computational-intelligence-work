@@ -13,7 +13,7 @@ struct Dijkstra;
 
 class Grafo
 {
-private:
+public:
     No *listaNos;
     u_int grau;///maior grau de vértice do grafo
     u_int numeroNos;///n
@@ -24,7 +24,6 @@ private:
     void auxBuscaProfundidade(No *no, No* noArv, Grafo* Arv);
 //    void incrementaContador(No* n);
     void atualizaDist(No* u, map<u_int, No*> Q, map<u_int, double> distancias);
-public:
     Grafo();
     No *getListaNos(){return this->listaNos;};
     u_int getGrau(){     return grau;    };
@@ -103,11 +102,19 @@ public:
 
     /**
     Retorna o subgrafo (ou floresta de subgrafos se o grafo nao e não-conexo)
-    contendo as arestas de peso minimo que ligam todos os nos do grafo
+    contendo as arestas de fluxo minimo que ligam todos os nos do grafo
     que formam a arvore/floresta
     */
     vector<Arco*> Kruskal();
 
+
+
+
+    ///funcoes trabalho IC:
+    u_int n_marcados;/// contagem percurso em profundidade
+    No *insereNoCarga(u_int id, double carga, double potencia_reativa);
+    void insereArcoResistencia(u_int idOrig, u_int idDest, u_int ID, double resistencia, double fluxo);
+    void leEntrada();
     ~Grafo();
 };
 

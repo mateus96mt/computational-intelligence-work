@@ -29,6 +29,19 @@ No *Grafo::insereNo(u_int id){
     return no;
 }
 
+///potencia ativa=carga
+No *Grafo::insereNoCarga(u_int id, double carga, double potencia_reativa){
+    No *no=new No(id);
+    no->carga = carga;
+    ///potencia ativa=carga
+    no->potencia_ativa = carga;
+    no->potencia_reativa = potencia_reativa;
+    no->setProxNo(listaNos);
+    listaNos=no;  ///nao deveria ser um setListaDeNos(this->listaNos)???
+    this->numeroNos++;///atualiza numero de vertices(nos)
+    return no;
+}
+
 No *Grafo::buscaNo(u_int id){
     No *no = listaNos;
     while(no!=NULL){
@@ -60,10 +73,29 @@ void Grafo::insereArcoID(u_int idOrigem, u_int idDestino, u_int id){
     this->insereArco(noOrigem, noDestino, id, true);
 }
 
+void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, double resistencia, double fluxo){
+    No *noOrigem = buscaNo(idOrigem);
+    No *noDestino = buscaNo(idDestino);
+
+    Arco *novaArco = new Arco(id);
+    novaArco->setNoDestino(noDestino);
+    novaArco->setNoOrigem(noOrigem);
+    novaArco->setProxArco(noOrigem->listaArcos);
+    novaArco->resistencia = resistencia;
+    novaArco->fluxo = fluxo;
+    noOrigem->setListaArcos(novaArco);
+    noOrigem->grau++;
+
+
+    this->numeroArcos++;
+    this->atualizaGrau();
+}
+
 /** desmarcar os nos do grafo */
 void Grafo::desmarcaNos(){
     for(No *i = listaNos; i != NULL; i = i->getProxNo())
         i->setMarcado(false);
+    n_marcados = 0;
 }
 
 bool Grafo::mesmaComponenteFortementeConexa(u_int id1, u_int id2){
@@ -100,6 +132,7 @@ void Grafo::percursoProfundidade(No *no){
         if(no->getMarcado() == false){
 //            cout<<"marcando: "<<no->getID()<<endl;
             no->setMarcado(true);
+            n_marcados++;
             this->contAux++;
 //            if (funcao != NULL)
 //                (this->*funcao)(no);
@@ -353,7 +386,7 @@ u_int* Grafo::sequenciaGrau(){
 
 void Grafo::imprime(){
     cout<<"Grau do Grafo: "<<this->grau<<"\tnumero de nos: "<<this->numeroNos
-    <<"\tnumero de arcos: "<<this->numeroArcos<<endl;
+    <<"\tnumero de arcos: "<<this->numeroArcos<< " \t\t obs: r=resistencia, c=carga=potencia_ativa, p_re=potencia_reativa, f=fluxo(inicialmente nao sei calcular fluxo, coloquei -1.0)\n\n";
     No *no=listaNos;
     while(no!=NULL){
         no->imprime();
@@ -638,7 +671,7 @@ double** Grafo::algoritmoFloyd(){
             else{
                 aux = buscaArco(i, j);
                 if(aux != NULL)
-                    mat[i][j] = aux->getPeso();
+                    mat[i][j] = aux->getfluxo();
                 else
                     mat[i][j] = infinito;
             }
@@ -660,8 +693,8 @@ funcionando parciamente para grafos direcioandos. Internet diz que o algoritmo s
 Verificar complexidade do algoritmo.
 ***/
 
-///operador para ordenar as arestas por peso (Usado no algoritmo de Kruskal)
-bool menorPeso(Arco *a1, Arco *a2){return ( a1->getPeso() < a2->getPeso() );};
+///operador para ordenar as arestas por fluxo (Usado no algoritmo de Kruskal)
+bool menorfluxo(Arco *a1, Arco *a2){return ( a1->getfluxo() < a2->getfluxo() );};
 
 vector<Arco*> Grafo::Kruskal(){
     ///todos os arcos para ordenacao e 'solucao' que e a solucao (os arcos que forma as arvore/floresta)
@@ -677,7 +710,7 @@ vector<Arco*> Grafo::Kruskal(){
         idArvore++;
     }
 
-    sort(arcos.begin(), arcos.end(), menorPeso);
+    sort(arcos.begin(), arcos.end(), menorfluxo);
 
     ///nos origem e destino para cada arco
     No *orig, *dest;
@@ -704,28 +737,70 @@ vector<Arco*> Grafo::Kruskal(){
     return solucao;
 }
 
-/***
-prim(G) # G eh grafo
-    # Escolhe qualquer vértice do grafo como vertice inicial/de partida
-    s <- seleciona-um-elemento(vertices(G))
 
-    para todo v E vertices(G)
-        pi[v] <- nulo
-    Q <- {(0, s)}
-    S <- nulo
+void Grafo::leEntrada()
+{
+    ifstream entrada;
+    entrada.open("entrada.txt");
 
-    enquanto Q != nulo
-        v <- extrair-mín(Q)
-        S <- S U {v}
+    u_int idNo, idOrig, idDest;
 
-        para cada u adjacente a v
-            se u !E S e pesoDaAresta(pi[u]->u) > pesoDaAresta(v->u)
-                Q <- Q \ {(pesoDaAresta(pi[u]->u), u)}
-                Q <- Q U {(pesoDaAresta(v->u), u)}
-                pi[u] <- v
+    ///potencia ativa = carga
+    double carga, resistencia, potencia_reativa;
 
-    retorna {(pi[v], v) | v E vertices(G) e pi[v] != nulo}
-***/
 
-/** IMPLEMENTAR DESTRUTOR */
+    string aux;
+    do{
+        entrada >> aux;
+    }while(aux != "num_nos");///le lixo ate chegar na parte de informacoes do no
+
+    u_int num_nos;
+    entrada >> num_nos;
+    for(u_int i=1 ; i<=num_nos*13; i++){
+        if(i % 13 == 1){
+            entrada >> idNo;
+            cout << "idNo: " << idNo;
+        }
+        else if(i % 13 == 10){
+            entrada >> carga;
+            cout << "      pot at=carga: " << carga;
+        }
+        else if(i % 13 == 11){
+            entrada >> potencia_reativa;
+            cout << "      pot reat: " << potencia_reativa << endl;
+            insereNoCarga(idNo, carga, potencia_reativa);
+        }
+        else
+            entrada >> aux;
+    }
+
+    do{
+        entrada >> aux;
+    }while(aux != "num_arestas");///le mais lixo ate chegar na parte de informacoes da aresta
+
+    u_int num_arestas;
+    entrada >> num_arestas;
+
+    for(u_int i=1 ; i<=num_nos*13; i++){
+        if(i % 12 == 1){
+            entrada >> idOrig;
+            cout << "idOrig: " << idOrig;
+        }
+        else if(i % 12 == 2){
+            entrada >> idDest;
+            cout << "      idDest: " << idDest;
+        }
+        else if(i % 12 == 3){
+            entrada >> resistencia;
+            cout << "      r: " << resistencia << endl;
+            insereArcoResistencia(idOrig, idDest, i%13, resistencia, -1.0);
+        }
+        else
+            entrada >> aux;
+    }
+
+    cout << "\n\nentrada.txt lida!\n\n\n" << endl;
+}
+
+///FALTA DESTRUTOR!
 Grafo::~Grafo(){}

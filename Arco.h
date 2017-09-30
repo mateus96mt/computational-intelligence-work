@@ -7,21 +7,28 @@
 typedef unsigned int u_int;
 class Arco
 {
-private:
+public:
     u_int id;
     Arco *proxArco;
     No *noOrigem, *noDestino;
-    double peso;
-public:
+
+
+    bool chave;
+    double fluxo;
+    ///rextricoes de fluxo
+    double lim_inf, lim_sup;
+    ///resistencia do arco
+    double resistencia;
+
     Arco(u_int id){
         this->id=id;
         this->proxArco=0;
         this->noDestino=0;
-        this->peso=0;
+        this->fluxo=0;
     };
 
-    double getPeso(){   return peso;    };
-    void setPeso(double peso){  this->peso = peso;};
+    double getfluxo(){   return fluxo;    };
+    void setfluxo(double fluxo){  this->fluxo = fluxo;};
 
     u_int getID(){   return this->id;    };
 
@@ -35,8 +42,9 @@ public:
     void setNoOrigem(No *no){  this->noOrigem=no; };
 
     void imprime(){
-        printf(" --|A%2d: peso: %2.1f|--> (%d) ", id, peso, noDestino->getID());
+        printf(" --|A%2d: r: %2.5f : f %2.1f:|--> (%d, %d) ", id, resistencia, fluxo, noOrigem->getID(), noDestino->getID());
     }
+
 
     ~Arco(){};
 };

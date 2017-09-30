@@ -10,7 +10,7 @@ No::No(u_int id){
     this->proxNo = NULL;
     this->listaArcos = NULL;
     this->grau = 0;
-    this->peso = 0.0;
+    this->carga = 0.0;
     this->marcado = false;
     this->nivel = 0;
 }
@@ -39,18 +39,18 @@ void No::insereArco(No* noDestino, u_int id){
     novaArco->setNoDestino(noDestino);
     novaArco->setNoOrigem(this);
     novaArco->setProxArco(this->listaArcos);
-    novaArco->setPeso(hashing(id));
+    novaArco->setfluxo(hashing(id));
     this->setListaArcos(novaArco);
     this->grau++;
 }
 
 void No::imprime(){
-//    cout<<"( "<<"id:"<<this->getID()<<"\tgrau:"<<this->grau<<"\tpeso:"<<this->peso<<"\tnivel:"<<this->nivel<<" )";
-    printf("( id:%2d grau:%2d peso: %2.1f nivel:%2d )", id, grau, peso, nivel);
+//    cout<<"( "<<"id:"<<this->getID()<<"\tgrau:"<<this->grau<<"\tfluxo:"<<this->fluxo<<"\tnivel:"<<this->nivel<<" )";
+    printf("( id:%2d grau:%2d c: %2.1f : p_re :%2.1f)", id, grau, carga, potencia_reativa);
     Arco *arc = this->getListaArcos();
 
     while(arc!=NULL){
-//        cout<< " --|A" << arc->getID() << "|--> " << arc->getNoDestino()->getID() << " " << "Peso: " << arc->getPeso() << " ";
+//        cout<< " --|A" << arc->getID() << "|--> " << arc->getNoDestino()->getID() << " " << "fluxo: " << arc->getfluxo() << " ";
         arc->imprime();
         arc = arc->getProxArco();
     }

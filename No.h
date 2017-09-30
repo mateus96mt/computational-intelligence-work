@@ -7,7 +7,7 @@ class Arco;
 
 class No
 {
-private:
+public:
     u_int id;
     u_int grau, grauEntrada, grauSaida;
     No *proxNo;
@@ -15,8 +15,12 @@ private:
     u_int idArvore;///id para auxiliar no algoritmo de Kruskal
     u_int nivel; ///(caso grafo seja arvore)
     bool marcado;///se o no esta marcado ou nao(util na busca em profundidade)
-    double peso;
-public:
+
+
+    ///atributos TRABALHO IC:
+    double carga, potencia_ativa, potencia_reativa;
+
+
     No(u_int id);
 
     u_int getIdArvore(){return idArvore;};
@@ -34,8 +38,8 @@ public:
     u_int getGrauSaida(){ return grauSaida;    };
     void setGrauSaida(int grauSaida){    this->grauSaida = grauSaida;};
 
-    double getPeso(){   return peso;};
-    void setPeso(double peso){  this->peso = peso;};
+    double getcarga(){   return carga;};
+    void setcarga(double carga){  this->carga = carga;};
 
     u_int getID(){   return this->id;    };
     void setID(double id){  this->id = id;  };
