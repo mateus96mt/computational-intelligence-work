@@ -30,12 +30,13 @@ No *Grafo::insereNo(u_int id){
 }
 
 ///potencia ativa=carga
-No *Grafo::insereNoCarga(u_int id, double carga, double potencia_reativa){
+No *Grafo::insereNoCargaVoltagem(u_int id, double carga, double potencia_reativa, double voltagem){
     No *no=new No(id);
     no->carga = carga;
     ///potencia ativa=carga
     no->potencia_ativa = carga;
     no->potencia_reativa = potencia_reativa;
+    no->voltagem = voltagem;
     no->setProxNo(listaNos);
     listaNos=no;  ///nao deveria ser um setListaDeNos(this->listaNos)???
     this->numeroNos++;///atualiza numero de vertices(nos)
@@ -73,7 +74,7 @@ void Grafo::insereArcoID(u_int idOrigem, u_int idDestino, u_int id){
     this->insereArco(noOrigem, noDestino, id, true);
 }
 
-void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, double resistencia, double fluxo){
+void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ){
     No *noOrigem = buscaNo(idOrigem);
     No *noDestino = buscaNo(idDestino);
 
@@ -81,8 +82,14 @@ void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, dou
     novaArco->setNoDestino(noDestino);
     novaArco->setNoOrigem(noOrigem);
     novaArco->setProxArco(noOrigem->listaArcos);
+
     novaArco->resistencia = resistencia;
-    novaArco->fluxo = fluxo;
+    novaArco->reatancia = reatancia;
+    novaArco->fluxoP_ativ = fluxoP_ativ;
+    novaArco->fluxoP_reativ = fluxoP_reativ;
+
+    novaArco->chave = true;
+
     noOrigem->setListaArcos(novaArco);
     noOrigem->grau++;
 
@@ -136,11 +143,62 @@ void Grafo::percursoProfundidade(No *no){
             this->contAux++;
 //            if (funcao != NULL)
 //                (this->*funcao)(no);
-            for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco())
+            for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
                     percursoProfundidade(a->getNoDestino());
+            }
         }
     }
 }
+
+void Grafo::AtualizaFLuxos(){
+    AuxAtualizaFLuxos(this->getListaNos());
+}
+
+void Grafo::AuxAtualizaFLuxos(No *no){
+    //printf("\n\nno:%d\n\n", no->getID());
+    if(no == NULL)
+        cout<<"\n No NULL \n"<<endl;
+    else{
+        if(no->getMarcado() == false){
+//            cout<<"marcando: "<<no->getID()<<endl;
+            no->setMarcado(true);
+            n_marcados++;
+            this->contAux++;
+//            if (funcao != NULL)
+//                (this->*funcao)(no);
+            for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
+
+                    ///chamada recursiva
+                    AuxAtualizaFLuxos(a->getNoDestino());
+
+                    printf("A:%d\n", a->getID());
+                    No *no_dest = a->getNoDestino();
+                    a->fluxoP_ativ = 0.0;
+                    a->fluxoP_reativ = 0.0;
+
+                    if(no_dest->getGrau()>0){
+                        for(Arco *aNext=no_dest->getListaArcos(); aNext!=NULL; aNext=aNext->getProxArco()){
+                            ///o calculo do V nao entendi
+                            double Vi = 100.0;
+
+                            double Pi_ = aNext->fluxoP_ativ + no_dest->carga;
+                            double Qi_ = aNext->fluxoP_reativ + no_dest->potencia_reativa;
+
+                            a->fluxoP_ativ += aNext->fluxoP_ativ + (aNext->resistencia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->carga;
+                            a->fluxoP_reativ += aNext->fluxoP_reativ + (aNext->reatancia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->potencia_reativa;
+
+                        }
+                    }
+                    else{
+                        a->fluxoP_ativ = no_dest->carga;
+                        a->fluxoP_reativ = no_dest->potencia_reativa;
+                    }
+
+            }
+        }
+    }
+}
+
 /**
  * Auxiliar pata buscaProfundidade
  */
@@ -389,6 +447,7 @@ void Grafo::imprime(){
     <<"\tnumero de arcos: "<<this->numeroArcos<< " \t\t obs: r=resistencia, c=carga=potencia_ativa, p_re=potencia_reativa, f=fluxo(inicialmente nao sei calcular fluxo, coloquei -1.0)\n\n";
     No *no=listaNos;
     while(no!=NULL){
+        printf("\n");
         no->imprime();
         no=no->getProxNo();
     }
@@ -671,7 +730,7 @@ double** Grafo::algoritmoFloyd(){
             else{
                 aux = buscaArco(i, j);
                 if(aux != NULL)
-                    mat[i][j] = aux->getfluxo();
+                    mat[i][j] = aux->getfluxoP_ativ();
                 else
                     mat[i][j] = infinito;
             }
@@ -694,7 +753,7 @@ Verificar complexidade do algoritmo.
 ***/
 
 ///operador para ordenar as arestas por fluxo (Usado no algoritmo de Kruskal)
-bool menorfluxo(Arco *a1, Arco *a2){return ( a1->getfluxo() < a2->getfluxo() );};
+bool menorfluxo(Arco *a1, Arco *a2){return ( a1->getfluxoP_ativ() < a2->getfluxoP_ativ() );};
 
 vector<Arco*> Grafo::Kruskal(){
     ///todos os arcos para ordenacao e 'solucao' que e a solucao (os arcos que forma as arvore/floresta)
@@ -746,7 +805,7 @@ void Grafo::leEntrada()
     u_int idNo, idOrig, idDest;
 
     ///potencia ativa = carga
-    double carga, resistencia, potencia_reativa;
+    double carga, resistencia, reatancia, potencia_reativa, voltagem;
 
 
     string aux;
@@ -759,16 +818,20 @@ void Grafo::leEntrada()
     for(u_int i=1 ; i<=num_nos*13; i++){
         if(i % 13 == 1){
             entrada >> idNo;
-            cout << "idNo: " << idNo;
+            //cout << "idNo: " << idNo;
+        }
+        else if(i % 13 == 4){
+            entrada >> voltagem;
+            cout << "V: " << voltagem;
         }
         else if(i % 13 == 10){
             entrada >> carga;
-            cout << "      pot at=carga: " << carga;
+            //cout << "      pot at=carga: " << carga;
         }
         else if(i % 13 == 11){
             entrada >> potencia_reativa;
-            cout << "      pot reat: " << potencia_reativa << endl;
-            insereNoCarga(idNo, carga, potencia_reativa);
+            //cout << "      pot reat: " << potencia_reativa << endl;
+            insereNoCargaVoltagem(idNo, carga, potencia_reativa, voltagem);
         }
         else
             entrada >> aux;
@@ -781,19 +844,23 @@ void Grafo::leEntrada()
     u_int num_arestas;
     entrada >> num_arestas;
 
-    for(u_int i=1 ; i<=num_nos*13; i++){
+    for(u_int i=1 ; i<=num_arestas*12; i++){
         if(i % 12 == 1){
             entrada >> idOrig;
-            cout << "idOrig: " << idOrig;
+            //cout << "idOrig: " << idOrig;
         }
         else if(i % 12 == 2){
             entrada >> idDest;
-            cout << "      idDest: " << idDest;
+            //cout << "      idDest: " << idDest;
         }
         else if(i % 12 == 3){
             entrada >> resistencia;
-            cout << "      r: " << resistencia << endl;
-            insereArcoResistencia(idOrig, idDest, i%13, resistencia, -1.0);
+            //cout << "      r: " << resistencia << "      i%13=" << this->numeroArcos <<endl;
+        }
+        else if(i % 12 == 4){
+            entrada >> reatancia;
+            //cout << "      reat: " << reatancia;
+            insereArcoResistencia(idOrig, idDest, this->numeroArcos + 1, resistencia, reatancia, -1.0, -1.0);
         }
         else
             entrada >> aux;

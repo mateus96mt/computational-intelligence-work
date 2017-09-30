@@ -39,18 +39,19 @@ void No::insereArco(No* noDestino, u_int id){
     novaArco->setNoDestino(noDestino);
     novaArco->setNoOrigem(this);
     novaArco->setProxArco(this->listaArcos);
-    novaArco->setfluxo(hashing(id));
+    novaArco->setfluxoP_ativ(hashing(id));
     this->setListaArcos(novaArco);
     this->grau++;
 }
 
 void No::imprime(){
 //    cout<<"( "<<"id:"<<this->getID()<<"\tgrau:"<<this->grau<<"\tfluxo:"<<this->fluxo<<"\tnivel:"<<this->nivel<<" )";
-    printf("( id:%2d grau:%2d c: %2.1f : p_re :%2.1f)", id, grau, carga, potencia_reativa);
+    printf("( id:%2d grau:%2d c: %2.1f : p_re :%2.1f : v:%2.1f :)", id, grau, carga, potencia_reativa, voltagem);
     Arco *arc = this->getListaArcos();
 
     while(arc!=NULL){
 //        cout<< " --|A" << arc->getID() << "|--> " << arc->getNoDestino()->getID() << " " << "fluxo: " << arc->getfluxo() << " ";
+        printf("\n");
         arc->imprime();
         arc = arc->getProxArco();
     }

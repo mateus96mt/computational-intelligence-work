@@ -18,7 +18,7 @@ public:
 
 
     ///atributos TRABALHO IC:
-    double carga, potencia_ativa, potencia_reativa;
+    double carga, potencia_ativa, potencia_reativa, voltagem;
 
 
     No(u_int id);

@@ -14,21 +14,24 @@ public:
 
 
     bool chave;
-    double fluxo;
-    ///rextricoes de fluxo
+
+
+    double fluxoP_ativ, fluxoP_reativ;
+    ///rextricoes de fluxoP_ativ
     double lim_inf, lim_sup;
     ///resistencia do arco
-    double resistencia;
+    double resistencia, reatancia;
 
     Arco(u_int id){
         this->id=id;
         this->proxArco=0;
         this->noDestino=0;
-        this->fluxo=0;
+        this->fluxoP_ativ=0.0;
+        this->fluxoP_reativ=0.0;
     };
 
-    double getfluxo(){   return fluxo;    };
-    void setfluxo(double fluxo){  this->fluxo = fluxo;};
+    double getfluxoP_ativ(){   return fluxoP_ativ;    };
+    void setfluxoP_ativ(double fluxoP_ativ){  this->fluxoP_ativ = fluxoP_ativ;};
 
     u_int getID(){   return this->id;    };
 
@@ -42,7 +45,7 @@ public:
     void setNoOrigem(No *no){  this->noOrigem=no; };
 
     void imprime(){
-        printf(" --|A%2d: r: %2.5f : f %2.1f:|--> (%d, %d) ", id, resistencia, fluxo, noOrigem->getID(), noDestino->getID());
+        printf(" --|A%2d: r: %2.5f : reat: %2.5f : fat %2.1f : freat %2.1f:|--> (%d, %d) ", id, resistencia, reatancia, fluxoP_ativ, fluxoP_reativ, noOrigem->getID(), noDestino->getID());
     }
 
 
