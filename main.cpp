@@ -23,10 +23,9 @@ int main()
     g->n_marcados = 0;
 
 
-    printf("\n\n\nobservando percurso!\n\n\n");
-    g->AtualizaFLuxos();
+//    g->AtualizaFLuxos();
+    g->construtivo();
 
-    printf("\n\n\n");
     g->imprime();
 
 //    printf("\npartindo do no fonte:\n");

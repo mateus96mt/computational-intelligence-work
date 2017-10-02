@@ -21,6 +21,7 @@ public:
     double lim_inf, lim_sup;
     ///resistencia do arco
     double resistencia, reatancia;
+    double perda;
 
     Arco(u_int id){
         this->id=id;
@@ -45,7 +46,7 @@ public:
     void setNoOrigem(No *no){  this->noOrigem=no; };
 
     void imprime(){
-        printf(" --|A%2d: r: %2.5f : reat: %2.5f : fat %2.1f : freat %2.1f:|--> (%d, %d) ", id, resistencia, reatancia, fluxoP_ativ, fluxoP_reativ, noOrigem->getID(), noDestino->getID());
+        printf(" --|A%2d[%d]: r: %2.5f : reat: %2.5f : fat %2.1f : freat %2.1f: perda %2.1f :|--> (%d, %d) ", id, chave, resistencia, reatancia, fluxoP_ativ, fluxoP_reativ, perda, noOrigem->getID(), noDestino->getID());
     }
 
 

@@ -74,7 +74,7 @@ void Grafo::insereArcoID(u_int idOrigem, u_int idDestino, u_int id){
     this->insereArco(noOrigem, noDestino, id, true);
 }
 
-void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ){
+void Grafo::insereArcoDados(u_int idOrigem, u_int idDestino, u_int id, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ, bool chave){
     No *noOrigem = buscaNo(idOrigem);
     No *noDestino = buscaNo(idDestino);
 
@@ -88,14 +88,19 @@ void Grafo::insereArcoResistencia(u_int idOrigem, u_int idDestino, u_int id, dou
     novaArco->fluxoP_ativ = fluxoP_ativ;
     novaArco->fluxoP_reativ = fluxoP_reativ;
 
-    novaArco->chave = true;
+    if(chave)
+        novaArco->chave = true;
 
     noOrigem->setListaArcos(novaArco);
-    noOrigem->grau++;
-
+    noDestino->volta.push_back(novaArco);
 
     this->numeroArcos++;
-    this->atualizaGrau();
+
+
+    if(chave){
+        noOrigem->grau++;
+        this->atualizaGrau();
+    }
 }
 
 /** desmarcar os nos do grafo */
@@ -186,18 +191,114 @@ void Grafo::AuxAtualizaFLuxos(No *no){
 
                             a->fluxoP_ativ += aNext->fluxoP_ativ + (aNext->resistencia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->carga;
                             a->fluxoP_reativ += aNext->fluxoP_reativ + (aNext->reatancia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->potencia_reativa;
-
                         }
+                        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
                     }
                     else{
                         a->fluxoP_ativ = no_dest->carga;
                         a->fluxoP_reativ = no_dest->potencia_reativa;
+                        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
                     }
 
             }
         }
     }
 }
+
+void calculaPerda(Arco *a){
+    //printf("A:%d\n", a->getID());
+    No *no_dest = a->getNoDestino();
+    a->fluxoP_ativ = 0.0;
+    a->fluxoP_reativ = 0.0;
+
+    if(no_dest->getGrau()>0){
+        for(Arco *aNext=no_dest->getListaArcos(); aNext!=NULL; aNext=aNext->getProxArco()){
+            ///o calculo do V nao entendi
+            double Vi = 100.0;
+
+            double Pi_ = aNext->fluxoP_ativ + no_dest->carga;
+            double Qi_ = aNext->fluxoP_reativ + no_dest->potencia_reativa;
+
+            if(aNext->chave == false){
+                a->fluxoP_ativ = no_dest->carga;
+                a->fluxoP_reativ = no_dest->potencia_reativa;
+                a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
+            }else{
+                a->fluxoP_ativ += aNext->fluxoP_ativ + (aNext->resistencia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->carga;
+                a->fluxoP_reativ += aNext->fluxoP_reativ + (aNext->reatancia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->potencia_reativa;
+            }
+        }
+        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
+    }
+    else{
+        a->fluxoP_ativ = no_dest->carga;
+        a->fluxoP_reativ = no_dest->potencia_reativa;
+        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
+    }
+}
+
+bool menorPerda(Arco *a1, Arco *a2){calculaPerda(a1); calculaPerda(a2);return a1->perda < a2->perda;};
+
+void Grafo::construtivo(){
+    printf("\n\n-----------------CONSTRUTIVO---------------\n\n");
+    desmarcaNos();
+    AuxConstrutivo(this->listaNos);
+    printf("\n\n----------------------------------------------\n\n");
+}
+
+void Grafo::AuxConstrutivo(No *no){
+    //printf("\n\nno:%d\n\n", no->getID());
+    if(no == NULL)
+        cout<<"\n No NULL \n"<<endl;
+    else{
+        if(no->getMarcado() == false){
+//            cout<<"marcando: "<<no->getID()<<endl;
+            n_marcados++;
+            this->contAux++;
+//            if (funcao != NULL)
+//                (this->*funcao)(no);
+            for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
+
+                    ///nao descer por arcos com chave aberta
+                    while(a!=NULL && a->chave == false){
+                        //printf("A%d\n", a->getID());
+                        a = a->getProxArco();
+                    }
+
+                    if(a==NULL)
+                        break;
+                    ///---------------------------------
+
+
+                    ///chamada recursiva
+                    AuxConstrutivo(a->getNoDestino());
+
+                    ///calcula a perda no arco 'a' da volta recursiva
+                    calculaPerda(a);
+
+
+                    No *no_dest = a->getNoDestino();
+                    ///ordenar por menor perda os arcos que incidem no no
+                    sort(no_dest->volta.begin(), no_dest->volta.end(), menorPerda);
+                    ///uso o arco que teve menor perda
+                    no_dest->volta.at(0)->chave = true;
+                    ///demais arcos nao usa
+                    for(u_int i=1; i<no_dest->volta.size(); i++){
+                        no_dest->volta.at(i)->chave = false;
+                        no_dest->volta.at(i)->noOrigem->grau--;
+
+                        ///print dos arcos que foram abertos pela escolha do guloso
+                        printf("\nabriu A:%d (%d, %d)\n", no_dest->volta.at(i)->getID(),
+                        no_dest->volta.at(i)->getNoOrigem()->getID(),
+                        no_dest->volta.at(i)->getNoDestino()->getID());
+                    }
+            }
+            no->setMarcado(true);
+        }
+    }
+}
+
+
 
 /**
  * Auxiliar pata buscaProfundidade
@@ -443,6 +544,7 @@ u_int* Grafo::sequenciaGrau(){
 }
 
 void Grafo::imprime(){
+    printf("\n\n-----------------PRINT DO GRAFO---------------\n\n");
     cout<<"Grau do Grafo: "<<this->grau<<"\tnumero de nos: "<<this->numeroNos
     <<"\tnumero de arcos: "<<this->numeroArcos<< " \t\t obs: r=resistencia, c=carga=potencia_ativa, p_re=potencia_reativa, f=fluxo(inicialmente nao sei calcular fluxo, coloquei -1.0)\n\n";
     No *no=listaNos;
@@ -451,6 +553,7 @@ void Grafo::imprime(){
         no->imprime();
         no=no->getProxNo();
     }
+    printf("\n\n----------------------------------------------\n\n");
 }
 
 void Grafo::leArquivo(char nome[]){
@@ -822,7 +925,7 @@ void Grafo::leEntrada()
         }
         else if(i % 13 == 4){
             entrada >> voltagem;
-            cout << "V: " << voltagem;
+            //cout << "V: " << voltagem;
         }
         else if(i % 13 == 10){
             entrada >> carga;
@@ -860,7 +963,7 @@ void Grafo::leEntrada()
         else if(i % 12 == 4){
             entrada >> reatancia;
             //cout << "      reat: " << reatancia;
-            insereArcoResistencia(idOrig, idDest, this->numeroArcos + 1, resistencia, reatancia, -1.0, -1.0);
+            insereArcoDados(idOrig, idDest, this->numeroArcos + 1, resistencia, reatancia, 0.0, 0.0, true);
         }
         else
             entrada >> aux;

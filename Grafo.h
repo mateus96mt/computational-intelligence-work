@@ -3,7 +3,6 @@
 #include "No.h"
 #include "Arco.h"
 #include <iostream>
-#include <vector>
 #include <map>
 #include <algorithm>
 
@@ -113,11 +112,14 @@ public:
     ///funcoes trabalho IC:
     u_int n_marcados;/// contagem percurso em profundidade
     No *insereNoCargaVoltagem(u_int id, double carga, double potencia_reativa, double voltagem);
-    void insereArcoResistencia(u_int idOrig, u_int idDest, u_int ID, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ);
+    void insereArcoDados(u_int idOrig, u_int idDest, u_int ID, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ, bool chave);
     void leEntrada();
 
     void AtualizaFLuxos();
     void AuxAtualizaFLuxos(No *no);
+    void construtivo();
+    void AuxConstrutivo(No *no);
+
     ~Grafo();
 };
 

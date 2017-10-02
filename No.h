@@ -1,7 +1,10 @@
 #ifndef NO_H_INCLUDED
 #define NO_H_INCLUDED
+#include <vector>
 
 typedef unsigned int u_int;
+
+using namespace std;
 
 class Arco;
 
@@ -12,6 +15,7 @@ public:
     u_int grau, grauEntrada, grauSaida;
     No *proxNo;
     Arco *listaArcos;
+    vector<Arco*> volta;
     u_int idArvore;///id para auxiliar no algoritmo de Kruskal
     u_int nivel; ///(caso grafo seja arvore)
     bool marcado;///se o no esta marcado ou nao(util na busca em profundidade)
