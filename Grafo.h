@@ -9,10 +9,16 @@
 using namespace std;
 typedef u_int u_int;
 struct Dijkstra;
+void calculaPerda(Arco *a);
+bool menorPerda(Arco *a1, Arco *a2);
+bool compareReverse(u_int a, u_int b);
+bool menorfluxo(Arco *a1, Arco *a2);
+void movimentoSolucao(vector<Arco*> solucao);
 
 class Grafo
 {
 public:
+    double perdaTotal;
     No *listaNos;
     u_int grau;///maior grau de vértice do grafo
     u_int numeroNos;///n
@@ -113,12 +119,15 @@ public:
     u_int n_marcados;/// contagem percurso em profundidade
     No *insereNoCargaVoltagem(u_int id, double carga, double potencia_reativa, double voltagem);
     void insereArcoDados(u_int idOrig, u_int idDest, u_int ID, double resistencia, double reatancia, double fluxoP_ativ, double fluxoP_reativ, bool chave);
-    void leEntrada();
+    void leEntrada(char nome[]);
 
     void AtualizaFLuxos();
     void AuxAtualizaFLuxos(No *no);
     void construtivo();
     void AuxConstrutivo(No *no);
+    vector<Arco*> geraVetorArcos();
+    bool validaSolucao();
+    double calculaPerdaTotal();
 
     ~Grafo();
 };

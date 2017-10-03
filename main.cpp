@@ -14,39 +14,141 @@
 
 using namespace std;
 
+void imprimeVetorArcos(vector<Arco*> solucao);
+void testeFLuxos();
+void testeConstrutivo();
+void testeMovimentoSolucao();
+void testeBuscaLocal();
+
 int main()
 {
+    srand(time(NULL));
+
+//    testeFLuxos();
+//    testeConstrutivo();
+    testeMovimentoSolucao();
+//    testeBuscaLocal();
+
+    return 0;
+}
+
+void imprimeVetorArcos(vector<Arco*> solucao){
+    printf("\n\n------------------Vetor de arcos---------------\n\n");
+    for(u_int i=0; i<solucao.size(); i++)
+        printf("A%d (%d, %d) [ %d ]: perda = %2.5f\n", solucao.at(i)->getID(),
+        solucao.at(i)->getNoOrigem()->getID(),
+        solucao.at(i)->getNoDestino()->getID(),
+        solucao.at(i)->chave,
+        solucao.at(i)->perda);
+    printf("\n\n-----------------------------------------------\n\n");
+}
+
+void testeFLuxos(){
     Grafo *g = new Grafo();
-    g->leEntrada();
+
+    char nome[] = "entrada_bruno.txt";
+    g->leEntrada(nome);
+
+    g->AtualizaFLuxos();
+
+    g->imprime();
+}
+
+void testeConstrutivo(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "entrada.txt";
+    g->leEntrada(nome);
 
     g->imprime();
     g->n_marcados = 0;
 
-
-//    g->AtualizaFLuxos();
+    //    g->AtualizaFLuxos();
     g->construtivo();
 
     g->imprime();
 
-//    printf("\npartindo do no fonte:\n");
-//    ///fazendo o percurso em profundidade vemos no final se conseguimos marcar todos os nos(33 no caso)
-//    g->percursoProfundidade(g->getListaNos());
-//
-//
-//    ///assim o no 33, que e o primeiro da lista de adjacencia, e o no fonte
-//    cout << "num nos marcados:" << g->n_marcados << endl;
-//    g->desmarcaNos();
-//
-//
-//
-//
-//    ///so pra ver que com outro no qualquer vc nao consegue marcar todos os nos, so o no 33 é o no fonte
-//    printf("\npartindo do no 29:\n");
-//    g->percursoProfundidade(g->buscaNo(29));
-//
-//
-//    cout << "num nos marcados:" << g->n_marcados << endl;
-//    g->desmarcaNos();
+    vector<Arco*> solucao = g->geraVetorArcos();
 
-    return 0;
+    imprimeVetorArcos(solucao);
+}
+
+void testeMovimentoSolucao(){
+
+    u_int n_mov = 100;
+
+    Grafo *g = new Grafo();
+
+    char nome[] = "entrada.txt";
+    g->leEntrada(nome);
+
+    g->n_marcados = 0;
+
+    //    g->AtualizaFLuxos();
+    g->construtivo();
+
+
+    vector<Arco*> solucao = g->geraVetorArcos();
+
+    imprimeVetorArcos(solucao);
+    g->calculaPerdaTotal();
+
+    printf("\nPerda total: %2.5f\n", g->perdaTotal);
+
+    printf("\n\nINICIO DOS MOVIMENTOS\n\n");
+    for(u_int i=0; i<n_mov; i++){
+        movimentoSolucao(solucao);
+        g->AtualizaFLuxos();
+        g->calculaPerdaTotal();
+
+        if(g->validaSolucao()){
+            imprimeVetorArcos(solucao);
+            printf("Perda total: %2.5f\n", g->perdaTotal);
+        }
+        else
+            printf("\nsolucao invalida!\n");
+    }
+}
+
+void testeBuscaLocal(){
+    ///numero de iteracoes sem melhora
+    u_int n_mov = 100;
+
+    Grafo *g = new Grafo();
+
+    char nome[] = "entrada.txt";
+    g->leEntrada(nome);
+
+    g->n_marcados = 0;
+
+    //    g->AtualizaFLuxos();
+    g->construtivo();
+
+
+    vector<Arco*> solucao = g->geraVetorArcos();
+
+    bool chaveamento[solucao.size()];
+
+    imprimeVetorArcos(solucao);
+    g->calculaPerdaTotal();
+    double perdaMinima = g->perdaTotal;
+
+    u_int itSemMelhora = 0;
+
+    printf("\nPerda total: %2.5f\n", g->perdaTotal);
+
+    printf("\n\nINICIO DOS MOVIMENTOS\n\n");
+    while(itSemMelhora<=n_mov){
+        movimentoSolucao(solucao);
+        g->AtualizaFLuxos();
+        g->calculaPerdaTotal();
+
+        if(g->validaSolucao() && g->perdaTotal < perdaMinima){
+            printf("Perda total: %2.5f\n", g->perdaTotal);
+            perdaMinima = g->perdaTotal;
+            itSemMelhora = 0;
+        }
+
+        itSemMelhora++;
+    }
 }

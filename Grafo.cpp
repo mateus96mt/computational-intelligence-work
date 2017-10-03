@@ -149,13 +149,25 @@ void Grafo::percursoProfundidade(No *no){
 //            if (funcao != NULL)
 //                (this->*funcao)(no);
             for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
-                    percursoProfundidade(a->getNoDestino());
+
+                ///nao descer por arcos com chave aberta
+                while(a!=NULL && a->chave == false){
+                    //printf("A%d\n", a->getID());
+                    a = a->getProxArco();
+                }
+
+                if(a==NULL)
+                    break;
+                ///---------------------------------
+
+                percursoProfundidade(a->getNoDestino());
             }
         }
     }
 }
 
 void Grafo::AtualizaFLuxos(){
+    desmarcaNos();
     AuxAtualizaFLuxos(this->getListaNos());
 }
 
@@ -173,33 +185,21 @@ void Grafo::AuxAtualizaFLuxos(No *no){
 //                (this->*funcao)(no);
             for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
 
-                    ///chamada recursiva
-                    AuxAtualizaFLuxos(a->getNoDestino());
+                ///nao descer por arcos com chave aberta
+                while(a!=NULL && a->chave == false){
+                    //printf("A%d\n", a->getID());
+                    a->fluxoP_ativ = a->fluxoP_reativ = a->perda = 0.0;
+                    a = a->getProxArco();
+                }
 
-                    printf("A:%d\n", a->getID());
-                    No *no_dest = a->getNoDestino();
-                    a->fluxoP_ativ = 0.0;
-                    a->fluxoP_reativ = 0.0;
+                if(a==NULL)
+                    break;
+                ///---------------------------------
 
-                    if(no_dest->getGrau()>0){
-                        for(Arco *aNext=no_dest->getListaArcos(); aNext!=NULL; aNext=aNext->getProxArco()){
-                            ///o calculo do V nao entendi
-                            double Vi = 100.0;
+                ///chamada recursiva
+                AuxAtualizaFLuxos(a->getNoDestino());
 
-                            double Pi_ = aNext->fluxoP_ativ + no_dest->carga;
-                            double Qi_ = aNext->fluxoP_reativ + no_dest->potencia_reativa;
-
-                            a->fluxoP_ativ += aNext->fluxoP_ativ + (aNext->resistencia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->carga;
-                            a->fluxoP_reativ += aNext->fluxoP_reativ + (aNext->reatancia*( pow(Pi_, 2) + pow(Qi_, 2) )/pow(Vi,2)) + no_dest->potencia_reativa;
-                        }
-                        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
-                    }
-                    else{
-                        a->fluxoP_ativ = no_dest->carga;
-                        a->fluxoP_reativ = no_dest->potencia_reativa;
-                        a->perda = a->resistencia*pow(a->fluxoP_ativ, 2);
-                    }
-
+                calculaPerda(a);
             }
         }
     }
@@ -284,7 +284,13 @@ void Grafo::AuxConstrutivo(No *no){
                     no_dest->volta.at(0)->chave = true;
                     ///demais arcos nao usa
                     for(u_int i=1; i<no_dest->volta.size(); i++){
+
                         no_dest->volta.at(i)->chave = false;
+
+                        no_dest->volta.at(i)->fluxoP_ativ = 0.0;
+                        no_dest->volta.at(i)->fluxoP_reativ = 0.0;
+                        no_dest->volta.at(i)->perda = 0.0;
+
                         no_dest->volta.at(i)->noOrigem->grau--;
 
                         ///print dos arcos que foram abertos pela escolha do guloso
@@ -900,10 +906,10 @@ vector<Arco*> Grafo::Kruskal(){
 }
 
 
-void Grafo::leEntrada()
+void Grafo::leEntrada(char nome[])
 {
     ifstream entrada;
-    entrada.open("entrada.txt");
+    entrada.open(nome);
 
     u_int idNo, idOrig, idDest;
 
@@ -970,6 +976,58 @@ void Grafo::leEntrada()
     }
 
     cout << "\n\nentrada.txt lida!\n\n\n" << endl;
+}
+
+/*Gera um vetor de arcos da solucao (valor das chaves de acordo com o uso ou nao dela)*/
+vector<Arco*> Grafo::geraVetorArcos(){
+    vector<Arco*> arcos;
+    for(No *i = listaNos; i!=NULL; i = i->getProxNo()){
+        for(Arco *a = i->getListaArcos(); a!=NULL; a = a->getProxArco()){
+            arcos.push_back(a);
+        }
+    }
+    return arcos;
+}
+
+void movimentoSolucao(vector<Arco*> solucao){
+    u_int id1, id0;
+
+    ///escolhe dois ids de dois arcos, um aberto e outro fechado
+    ///os arcos sao trocados para se gerar a vizinhanca
+
+    id1 = rand() % solucao.size();
+    while(solucao.at(id1)->chave!=1)
+        id1 = rand() % solucao.size();
+
+
+    id0 = rand() % solucao.size();
+    while(solucao.at(id0)->chave!=0)
+        id0 = rand() % solucao.size();
+
+    bool aux = solucao.at(id1)->chave;
+    solucao.at(id1)->chave = solucao.at(id0)->chave;
+    solucao.at(id0)->chave = aux;
+
+}
+
+bool Grafo::validaSolucao(){
+    desmarcaNos();
+    percursoProfundidade(this->listaNos);
+    if(this->n_marcados != this->numeroNos)
+        return false;
+    else
+        return true;
+}
+
+double Grafo::calculaPerdaTotal(){
+    this->perdaTotal = 0.0;
+    for(No *i = this->listaNos; i!=NULL; i = i->getProxNo()){
+        for(Arco *a = i->getListaArcos(); a!=NULL; a = a->getProxArco()){
+            if(a->chave == true)
+                perdaTotal += a->perda;
+        }
+    }
+    return perdaTotal;
 }
 
 ///FALTA DESTRUTOR!
