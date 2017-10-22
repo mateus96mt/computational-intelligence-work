@@ -129,6 +129,16 @@ public:
     bool validaSolucao();
     double calculaPerdaTotal();
 
+    void foward(u_int it);
+    void Auxfoward(No *no, Arco *ak, u_int it);
+    void backward(u_int it);
+    void Auxbackward(No *no, Arco *ak, u_int it);
+    void calcula_fluxos_e_perdas();
+
+    double *soma_perdas();
+
+    double p_ativ_total, p_reat_total;
+
     ~Grafo();
 };
 

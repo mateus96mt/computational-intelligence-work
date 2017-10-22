@@ -19,17 +19,48 @@ void testeFLuxos();
 void testeConstrutivo();
 void testeMovimentoSolucao();
 void testeBuscaLocal();
+void testePercursoProfundidade();
+void testeLeonardo();///funcao com calculo de fluxos, voltagem em barra e perdas nas linhas usando foward e backward
 
 int main()
 {
     srand(time(NULL));
 
+    testeLeonardo();
+//    testePercursoProfundidade();
 //    testeFLuxos();
 //    testeConstrutivo();
-    testeMovimentoSolucao();
+//    testeMovimentoSolucao();
 //    testeBuscaLocal();
 
     return 0;
+}
+
+void testeLeonardo(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "entrada_bruno.txt";
+    g->leEntrada(nome);
+
+    g->imprime();
+    cout << "\n\n\n";
+
+//    g->calcula_fluxos_e_perdas();
+    g->foward(0);
+    g->backward(0);
+
+    g->imprime();
+}
+
+void testePercursoProfundidade(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "entrada_bruno.txt";
+    g->leEntrada(nome);
+
+    g->percursoProfundidade(g->listaNos);
+
+    g->imprime();
 }
 
 void imprimeVetorArcos(vector<Arco*> solucao){
@@ -39,7 +70,7 @@ void imprimeVetorArcos(vector<Arco*> solucao){
         solucao.at(i)->getNoOrigem()->getID(),
         solucao.at(i)->getNoDestino()->getID(),
         solucao.at(i)->chave,
-        solucao.at(i)->perda);
+        solucao.at(i)->perda_ativ);
     printf("\n\n-----------------------------------------------\n\n");
 }
 

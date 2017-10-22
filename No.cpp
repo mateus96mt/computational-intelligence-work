@@ -46,7 +46,7 @@ void No::insereArco(No* noDestino, u_int id){
 
 void No::imprime(){
 //    cout<<"( "<<"id:"<<this->getID()<<"\tgrau:"<<this->grau<<"\tfluxo:"<<this->fluxo<<"\tnivel:"<<this->nivel<<" )";
-    printf("( id:%2d grau:%2d c: g_v %d : %2.1f : p_re :%2.1f : v:%2.1f :)", id, grau, (int)volta.size(), carga, potencia_reativa, voltagem);
+    printf("( id:%2d grauE:%2d  grauS:%2d  c: %2.1f : p_re :%2.1f : v:%2.5f :)", id, grauEntrada, grauSaida, carga, potencia_reativa, voltagem);
     Arco *arc = this->getListaArcos();
 
     while(arc!=NULL){
