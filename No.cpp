@@ -10,6 +10,8 @@ No::No(u_int id){
     this->proxNo = NULL;
     this->listaArcos = NULL;
     this->grau = 0;
+    this->grauSaida = 0;
+    this->grauEntrada = 0;
     this->carga = 0.0;
     this->marcado = false;
     this->nivel = 0;

@@ -139,6 +139,20 @@ public:
 
     double p_ativ_total, p_reat_total;
 
+    ///agora vai!--------------tem que ir
+
+    double cargasPerdasRamoAtiv(No *no);
+    void auxcargasPerdasRamoAtiv(No *no, double &soma);
+
+    double cargasPerdasRamoReAtiv(No *no);
+    void auxcargasPerdasRamoReAtiv(No *no, double &soma);
+
+
+    ///agora vai!--------------tem que ir
+
+
+
+
     ~Grafo();
 };
 

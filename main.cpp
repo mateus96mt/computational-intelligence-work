@@ -21,12 +21,14 @@ void testeMovimentoSolucao();
 void testeBuscaLocal();
 void testePercursoProfundidade();
 void testeLeonardo();///funcao com calculo de fluxos, voltagem em barra e perdas nas linhas usando foward e backward
+void testes();
 
 int main()
 {
     srand(time(NULL));
 
-    testeLeonardo();
+    testes();
+//    testeLeonardo();
 //    testePercursoProfundidade();
 //    testeFLuxos();
 //    testeConstrutivo();
@@ -36,21 +38,44 @@ int main()
     return 0;
 }
 
-void testeLeonardo(){
+void testes(){
     Grafo *g = new Grafo();
 
-    char nome[] = "entrada_bruno.txt";
+    char nome[] = "sist14barras.m";
     g->leEntrada(nome);
 
     g->imprime();
-    cout << "\n\n\n";
 
-//    g->calcula_fluxos_e_perdas();
+    cout << "\n\nsoma das cargas:" << g->cargasPerdasRamoAtiv(g->getListaNos()) << endl;
+
     g->foward(0);
+
+    g->imprime();
+
     g->backward(0);
 
     g->imprime();
+
+    g->foward(1);
+
+    g->imprime();
 }
+
+//void testeLeonardo(){
+//    Grafo *g = new Grafo();
+//
+//    char nome[] = "entrada_bruno.txt";
+//    g->leEntrada(nome);
+//
+//    g->imprime();
+//    cout << "\n\n\n";
+//
+//    g->calcula_fluxos_e_perdas();
+//    g->foward(0);
+//    g->backward(0);
+//
+//    g->imprime();
+//}
 
 void testePercursoProfundidade(){
     Grafo *g = new Grafo();
