@@ -21,6 +21,7 @@ Grafo::Grafo(){
     perdaTotal = 0.0;
     p_ativ_total = 0.0;
     p_reat_total = 0.0;
+    pb =vb =zb =0.0;
 }
 
 ///Função que insere nó no inicio(cabeça) do grafo
@@ -424,24 +425,30 @@ double *Grafo::soma_perdas(){
 //    }
 //}
 //
-//void Grafo::calcula_fluxos_e_perdas(){
-//
-//    double *perdas_total;
-//
-//    for(u_int it=0; it<2; it++){
-//
-//        perdas_total = this->soma_perdas();
-//
-//        ///calcula fluxos de potencia nas linhas
-//        foward(it);
-//
-//        ///calcula voltagem nas barras e perdas nas linhas
-//        backward(it);
-//
-//        cout << "\n\n\nDIFERENCA ENTRE PERDA ANTERIOR E ATUAL CALCULADA: ( " << this->soma_perdas()[0] - perdas_total[0]
-//        << " , " << this->soma_perdas()[1] - perdas_total[1] << " )\n\n\n";
-//    }
-//}
+void Grafo::calcula_fluxos_e_perdas(u_int n_it){
+
+    double *perdas_total, erro = 1.0;
+    double tol = 1e-8;
+
+    for(u_int it=0; erro>tol; it++){
+
+        perdas_total = this->soma_perdas();
+
+        ///calcula fluxos de potencia nas linhas
+        foward(it);
+
+        ///calcula voltagem nas barras e perdas nas linhas
+        backward();
+
+        cout << "\n\nperda total da rede: (" << this->soma_perdas()[0] << " , " << this->soma_perdas()[1] << ")" << endl;
+        cout << "DIFERENCA ENTRE PERDA ATUAL E ANTERIOR CALCULADA: ( " << this->soma_perdas()[0] - perdas_total[0]
+        << " , " << this->soma_perdas()[1] - perdas_total[1] << " )\n";
+
+        erro = this->soma_perdas()[0] - perdas_total[0];
+
+//        cout << "\nperda total da rede:" << this->soma_perdas() << endl;
+    }
+}
 
 /**
  * Auxiliar pata buscaProfundidade
@@ -687,7 +694,7 @@ u_int* Grafo::sequenciaGrau(){
 }
 
 void Grafo::imprime(){
-    printf("\n\n-----------------PRINT DO GRAFO-------pot_ativ_total = %2.1f-----pot_reat_total = %2.1f--------\n\n", p_ativ_total, p_reat_total);
+    printf("\n\n-----------------PRINT DO GRAFO-------pot_ativ_total = %2.5f-----pot_reat_total = %2.5f--------\n\n", p_ativ_total, p_reat_total);
     cout<<"Grau do Grafo: "<<this->grau<<"\tnumero de nos: "<<this->numeroNos
     <<"\tnumero de arcos: "<<this->numeroArcos<<
     " \t\t obs: r=resistencia, c=carga=potencia_ativa, p_re=potencia_reativa, f=fluxo(inicialmente nao sei calcular fluxo, coloquei -1.0)\n\n";
@@ -1046,19 +1053,39 @@ vector<Arco*> Grafo::Kruskal(){
 
 void Grafo::leEntrada(char nome[])
 {
-    int n_col_nos=12, n_col_arestas=12;
+    double fator_MW = 1e-3;
 
 
     ifstream entrada;
+    entrada.open(nome);
+    double carga, resistencia, reatancia, potencia_reativa, voltagem;
+
+    string aux;
+
+    int n_col_nos=12, n_col_arestas=12;
+
+    do{
+        entrada >> aux;
+    }while(aux != "Vb");
+    entrada >> aux;///le o sinal de igual
+    double VB, PB, ZB;
+    entrada >> VB;
+    entrada >> aux;entrada >> aux;
+    entrada >> PB;
+    entrada >> aux;entrada >> aux;
+    entrada >> ZB;
+    this->pb = PB; this->vb = VB; this->zb = ZB;
+    cout << "\nVB: " << this->vb << "\tPB: " << this->pb << "\tZB: " << this->zb << endl;
+
+
+
+    entrada.close();
     entrada.open(nome);
 
     u_int idNo, idOrig, idDest;
 
     ///potencia ativa = carga
-    double carga, resistencia, reatancia, potencia_reativa, voltagem;
 
-
-    string aux;
     do{
         entrada >> aux;
     }while(aux != "num_nos");///pula lixo ate chegar na parte de informacoes do no
@@ -1076,10 +1103,14 @@ void Grafo::leEntrada(char nome[])
         }
         else if(i % n_col_nos == 10){
             entrada >> carga;
+            carga /= PB;
+            carga *=fator_MW;
             //cout << "      pot at=carga: " << carga;
         }
         else if(i % n_col_nos == 11){
             entrada >> potencia_reativa;
+            potencia_reativa /=PB;
+            potencia_reativa *= fator_MW;
             //cout << "      pot reat: " << potencia_reativa << endl;
             insereNoCargaVoltagem(idNo, carga, potencia_reativa, voltagem);
         }
@@ -1105,10 +1136,12 @@ void Grafo::leEntrada(char nome[])
         }
         else if(i % n_col_arestas == 3){
             entrada >> resistencia;
+            resistencia /= ZB;
             //cout << "      r: " << resistencia << "      i%13=" << this->numeroArcos <<endl;
         }
         else if(i % n_col_arestas == 4){
             entrada >> reatancia;
+            reatancia /= ZB;
             //cout << "      reat: " << reatancia;
             insereArcoDados(idOrig, idDest, this->numeroArcos + 1, resistencia, reatancia, 0.0, 0.0, true);
         }
@@ -1116,7 +1149,14 @@ void Grafo::leEntrada(char nome[])
             entrada >> aux;
     }
 
-    cout << "\n\nentrada.txt lida!\n\n\n" << endl;
+    cout << "\n" << nome << " lida!\n\n\n" << endl;
+
+    for(No *no=listaNos; no!=NULL; no=no->proxNo){
+        if(no->grauEntrada>1)
+            this->nosEntrada.push_back(no);
+    }
+
+    cout << "vetore de nos de entrada construidos!\n\n\n" << endl;
 }
 
 /*Gera um vetor de arcos da solucao (valor das chaves de acordo com o uso ou nao dela)*/
@@ -1209,7 +1249,7 @@ void Grafo::auxcargasPerdasRamoReAtiv(No *no, double &soma){
 
 ///FOWARD
 void Grafo::foward(u_int it){
-    cout << "\n\n\n\n\tFOWARD!!!\n" << endl;
+//    cout << "\n\n\n\n\tFOWARD!!!\n" << endl;
     this->listaNos->voltagem = 1.0;///voltagem controlada na estacao
     Auxfoward(this->listaNos, this->listaNos->listaArcos, it);
 }
@@ -1224,8 +1264,10 @@ void Grafo::Auxfoward(No *no, Arco *ak, u_int it){
             while(a!=NULL && a->chave == false){
                 //printf("A%d\n", a->getID());
                 a = a->getProxArco();
-            }
 
+                if(a!=NULL)
+                    a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = 0.0;
+            }
             if(a==NULL)
                 break;
 
@@ -1278,13 +1320,13 @@ void Grafo::Auxfoward(No *no, Arco *ak, u_int it){
 
 
 
-void Grafo::backward(u_int it){
-    cout << "\n\n\n\n\tBACKWARD!!!" << endl;
+void Grafo::backward(){
+//    cout << "\n\n\n\n\tBACKWARD!!!" << endl;
     this->listaNos->voltagem = 1.0;///voltagem controlada na estacao
-    Auxbackward(this->listaNos, this->listaNos->listaArcos, it);
+    Auxbackward(this->listaNos, this->listaNos->listaArcos);
 }
 
-void Grafo::Auxbackward(No *no, Arco *ak, u_int it){
+void Grafo::Auxbackward(No *no, Arco *ak){
     if(no == NULL)
         cout<<"\n No NULL \n"<<endl;
     else{
@@ -1319,16 +1361,99 @@ void Grafo::Auxbackward(No *no, Arco *ak, u_int it){
 //            cout << "\nperda ativa: " << a->resistencia*(pow(a->fluxoP_ativ, 2) + pow(a->fluxoP_reativ, 2))
 //            /pow(noOrig->voltagem, 2);
 
-            cout << "no(m): " << noDest->id;
-            cout << "\tno(k): " << noOrig->id << endl;
+//            cout << "no(k): " << noOrig->id;
+//            cout << "\tno(m): " << noDest->id << endl;
+
 
             ///--------------
 
-            Auxbackward(a->getNoDestino(), a, it);
+            Auxbackward(a->getNoDestino(), a);
         }
     }
 }
 
+void Grafo::abreFechaChavesGrafo(bool **vetChaves){
+//    cout << "abrindo e fechando arcos...";
+    ///para cada no com grau de entrada maior que 1
+    for(u_int i=0; i<nosEntrada.size(); i++)
+    {
+//        cout << "No i:" << i << endl;
+        ///para cada arco que chega no no
+        for(u_int j=0; j<nosEntrada.at(i)->grauEntrada; j++){
+            nosEntrada.at(i)->volta.at(j)->chave = vetChaves[i][j];
+        }
+    }
+//    cout << "feito!" << endl;
+}
+
+double Grafo::funcaoObjetivo(bool **vetChaves, u_int n_it){
+    this->abreFechaChavesGrafo(vetChaves);
+    this->calcula_fluxos_e_perdas(n_it);
+    return calculaPerdaTotal();
+}
+
+///construtivo que gera uma arvore aleatoria
+bool **Grafo::construtivoAleatorio(){
+    bool **vetChaves;
+    if(this->nosEntrada.size() > 0){
+        vetChaves = new bool*[this->nosEntrada.size()];
+        for(u_int i=0; i<this->nosEntrada.size(); i++){
+            vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
+        }
+    }
+
+    ///para cada no de entrada
+    for(u_int i=0; i<this->nosEntrada.size(); i++){
+
+        u_int id = rand() % nosEntrada.at(i)->volta.size();
+
+        ///para cada arco que incide no no
+        for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++){
+            if(j==id)
+                vetChaves[i][j] = true;
+            else
+                vetChaves[i][j] = false;
+        }
+    }
+
+    return vetChaves;
+}
+
+void Grafo::ehArvore(){
+    cout << "\nverificando se grafo com as chaves no estado atual e uma arvore...\n";
+    auxEhArvore(listaNos);
+    cout << "\n\nfim de verificacao, se nenhuma menssagem de ciclo apareceu quer dizer que e arvore\n\n";
+}
+
+void Grafo::auxEhArvore(No *no){
+    if(no == NULL)
+        cout<<"\n No NULL \n"<<endl;
+    else{
+        if(no->getMarcado() == false){
+//            cout<<"marcando: "<<no->getID()<<endl;
+            no->setMarcado(true);
+            n_marcados++;
+            this->contAux++;
+//            if (funcao != NULL)
+//                (this->*funcao)(no);
+            for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
+
+                ///nao descer por arcos com chave aberta
+                while(a!=NULL && a->chave == false){
+                    //printf("A%d\n", a->getID());
+                    a = a->getProxArco();
+                }
+
+                if(a==NULL)
+                    break;
+
+                auxEhArvore(a->getNoDestino());
+            }
+        }
+        else
+            cout << "\nCICLO ENCONTRADO!";
+    }
+}
 
 ///agora vai!--------------tem que ir
 

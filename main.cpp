@@ -22,12 +22,14 @@ void testeBuscaLocal();
 void testePercursoProfundidade();
 void testeLeonardo();///funcao com calculo de fluxos, voltagem em barra e perdas nas linhas usando foward e backward
 void testes();
+void testeConstrutivoAleatorio();
 
 int main()
 {
     srand(time(NULL));
 
-    testes();
+    testeConstrutivoAleatorio();
+//    testes();
 //    testeLeonardo();
 //    testePercursoProfundidade();
 //    testeFLuxos();
@@ -36,6 +38,26 @@ int main()
 //    testeBuscaLocal();
 
     return 0;
+}
+
+void testeConstrutivoAleatorio(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2 - base.m";
+    g->leEntrada(nome);
+//    g->imprime();
+
+    g->desmarcaNos();
+    g->ehArvore();
+    bool **vetChaves = g->construtivoAleatorio();
+
+
+    cout << "\n\n\nfuncao objetivo: " << g->funcaoObjetivo(vetChaves, 10) << endl;
+
+    g->desmarcaNos();
+    g->ehArvore();
+
+//    g->imprime();
 }
 
 void testes(){
@@ -48,17 +70,36 @@ void testes(){
 
     cout << "\n\nsoma das cargas:" << g->cargasPerdasRamoAtiv(g->getListaNos()) << endl;
 
-    g->foward(0);
-
+    g->calcula_fluxos_e_perdas(10);
     g->imprime();
 
-    g->backward(0);
 
-    g->imprime();
+    bool **vetChaves = new bool*[g->numeroNos];
+    for(u_int i=0; i<g->numeroNos; i++){
+        vetChaves[i] = new bool[1];
+        vetChaves[i][0] = true;
+    }
 
-    g->foward(1);
+    cout << "\nfuncao objetivo:" << g->funcaoObjetivo(vetChaves, 10) << endl;
 
-    g->imprime();
+//    g->foward(0);
+//
+//    g->imprime();
+//
+//    g->backward();
+//
+//    g->imprime();
+//
+//
+//
+//
+//    g->foward(1);
+//
+//    g->imprime();
+//
+//    g->backward();
+////
+//    g->imprime();
 }
 
 //void testeLeonardo(){

@@ -24,6 +24,15 @@ public:
     u_int numeroNos;///n
     u_int numeroArcos;///m
     u_int contAux;/// contador auxiliar
+
+    ///agora vai, tem que ir
+
+    vector<No*> nosEntrada; /// nos do grafo que tem grau de entrada maior que 1
+
+
+    double pb, vb, zb;
+    ///agora vai, tem que ir
+
     bool flagDir;///flag indicando se o grafo é direcionado ou não
     int auxEhNoArticulacao(No* no);
     void auxBuscaProfundidade(No *no, No* noArv, Grafo* Arv);
@@ -131,15 +140,20 @@ public:
 
     void foward(u_int it);
     void Auxfoward(No *no, Arco *ak, u_int it);
-    void backward(u_int it);
-    void Auxbackward(No *no, Arco *ak, u_int it);
-    void calcula_fluxos_e_perdas();
+    void backward();
+    void Auxbackward(No *no, Arco *ak);
+    void calcula_fluxos_e_perdas(u_int n_it);
 
     double *soma_perdas();
 
     double p_ativ_total, p_reat_total;
 
+
+
+    void ehArvore();
+    void auxEhArvore(No *no);
     ///agora vai!--------------tem que ir
+
 
     double cargasPerdasRamoAtiv(No *no);
     void auxcargasPerdasRamoAtiv(No *no, double &soma);
@@ -147,11 +161,18 @@ public:
     double cargasPerdasRamoReAtiv(No *no);
     void auxcargasPerdasRamoReAtiv(No *no, double &soma);
 
+    void abreFechaChavesGrafo(bool **vetChaves);
+    double funcaoObjetivo(bool **vetChaves, u_int n_it);
+
+
+    ///CONSTRUTIVOS:
+    bool **construtivoAleatorio();
+
+
+
+    ///FUNCOES DE ALGORITMO GENETICO
 
     ///agora vai!--------------tem que ir
-
-
-
 
     ~Grafo();
 };
