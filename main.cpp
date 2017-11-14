@@ -23,18 +23,31 @@ void testePercursoProfundidade();
 void testeLeonardo();///funcao com calculo de fluxos, voltagem em barra e perdas nas linhas usando foward e backward
 void testes();
 void testeConstrutivoAleatorio();
+void testeGenetico();
+void testeMutacao();
+void testeCruzamento();
+void imprimeDifPerdas(Grafo *g, Grafo *h);
 
 int main()
 {
     srand(time(NULL));
 
-    testeConstrutivoAleatorio();
+    testeGenetico();
+
+//    testeConstrutivoAleatorio();
+
 //    testes();
+
 //    testeLeonardo();
+
 //    testePercursoProfundidade();
+
 //    testeFLuxos();
+
 //    testeConstrutivo();
+
 //    testeMovimentoSolucao();
+
 //    testeBuscaLocal();
 
     return 0;
@@ -52,7 +65,7 @@ void testeConstrutivoAleatorio(){
     bool **vetChaves = g->construtivoAleatorio();
 
 
-    cout << "\n\n\nfuncao objetivo: " << g->funcaoObjetivo(vetChaves, 10) << endl;
+    cout << "\n\n\nfuncao objetivo: " << g->funcaoObjetivo(vetChaves, 1e-8) << endl;
 
     g->desmarcaNos();
     g->ehArvore();
@@ -70,7 +83,7 @@ void testes(){
 
     cout << "\n\nsoma das cargas:" << g->cargasPerdasRamoAtiv(g->getListaNos()) << endl;
 
-    g->calcula_fluxos_e_perdas(10);
+    g->calcula_fluxos_e_perdas(1e-6);
     g->imprime();
 
 
@@ -247,5 +260,131 @@ void testeBuscaLocal(){
         }
 
         itSemMelhora++;
+    }
+}
+
+void testeGenetico(){
+
+
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+//
+////    cout << "resultado genetico:" << g->funcaoObjetivo(g->algoritmoGenetico(100), 1e-6);
+//
+    g->buscaArco(46, 27)->chave=false;
+    g->buscaArco(17, 27)->chave=false;
+    g->buscaArco(8, 24)->chave=false;
+    g->buscaArco(54, 43)->chave=false;
+    g->buscaArco(62, 54)->chave=false;
+    g->buscaArco(37, 62)->chave=false;
+    g->buscaArco(9, 40)->chave=false;
+    g->buscaArco(58, 96)->chave=false;
+    g->buscaArco(73, 91)->chave=false;
+    g->buscaArco(88, 75)->chave=false;
+    g->buscaArco(99, 77)->chave=false;
+    g->buscaArco(108, 83)->chave=false;
+    g->buscaArco(105, 86)->chave=false;
+    g->buscaArco(110, 118)->chave=false;
+    g->buscaArco(25, 35)->chave=false;
+
+//    g->imprime();
+
+//    g->imprime();
+
+    g->calcula_fluxos_e_perdas(1e-8);
+//    g->foward(0);
+//    g->backward();
+
+//    g->imprime();
+
+//    cout << "\n\n\nMAIN    nadress: " << g->buscaArco(8, 9) << endl;
+//    printf("(8,9) - fluxo: (%f , %f)", g->buscaArco(8, 9)->fluxoP_ativ, g->buscaArco(8, 9)->fluxoP_reativ);
+
+    cout << "\nresultado rede com chaves fechadas:" << g->soma_perdas()[0];
+
+
+//    g->imprime();
+
+
+    Grafo *h = new Grafo();
+    char nome2[] = "SISTEMA119s2 - base.m";
+    h->leEntrada(nome2);
+////
+    h->calcula_fluxos_e_perdas(1e-8);
+//    h->foward(0);
+////    h->backward();
+//
+    cout << "\nresultado entrada arvore base:" << h->soma_perdas()[0];
+
+//    cout << "\n\nadress: " << h->buscaArco(8, 9) << endl;
+//    printf("main(8,9) - fluxo: (%f , %f)", h->buscaArco(8, 9)->fluxoP_ativ, h->buscaArco(8, 9)->fluxoP_reativ);
+
+
+    imprimeDifPerdas(g, h);
+//    imprimeDifFluxos(g, h);
+
+
+
+    cout << "\n\n\n";
+}
+
+void testeMutacao(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    bool **vetChaves = g->construtivoAleatorio();
+    cout  << "individuo original:\n";
+    g->imprimeChaves(vetChaves);
+
+
+    for(int i=0; i<10; i++){
+        cout << "apos mutacao:\n";
+        g->mutacao(vetChaves);
+        g->imprimeChaves(vetChaves);
+    }
+
+}
+
+void testeCruzamento(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    bool **pai1 = g->construtivoAleatorio();
+    bool **pai2 = g->construtivoAleatorio();
+
+    cout << "pai1:\n";
+    g->imprimeChaves(pai1);
+    cout << "pai2:\n";
+    g->imprimeChaves(pai2);
+    cout << "filho:\n";
+    g->imprimeChaves(g->cruzamento_metade(pai1, pai2));
+
+}
+
+void imprimeDifPerdas(Grafo *g, Grafo *h){
+    No *hNo = h->listaNos;
+    for(No *no = g->listaNos; no!=NULL; no = no->proxNo){
+
+        Arco *ha = hNo->listaArcos;
+        for(Arco *a=no->listaArcos; a!=NULL; a=a->proxArco){
+            while(a!=NULL && a->chave==false)
+                a = a->proxArco;
+            if(a==NULL)
+                break;
+
+            cout << "g->a( " << a->noOrigem->id << " , " << a->noDestino->id << " ) = ( " << a->perda_ativ << " , " << a->perda_reat << " )";
+            cout << "    h->a( " << ha->noOrigem->id << " , " << ha->noDestino->id << " ) = ( " << ha->perda_ativ << " , " << ha->perda_reat << " )";
+            cout << "    diferenca:( " << a->perda_ativ - ha->perda_ativ << " , " << a->perda_reat - ha->perda_reat << endl;
+
+            ha = ha->proxArco;
+        }
+        hNo = hNo->proxNo;
+
     }
 }

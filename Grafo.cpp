@@ -425,10 +425,9 @@ double *Grafo::soma_perdas(){
 //    }
 //}
 //
-void Grafo::calcula_fluxos_e_perdas(u_int n_it){
+void Grafo::calcula_fluxos_e_perdas(double tol){
 
     double *perdas_total, erro = 1.0;
-    double tol = 1e-8;
 
     for(u_int it=0; erro>tol; it++){
 
@@ -440,9 +439,9 @@ void Grafo::calcula_fluxos_e_perdas(u_int n_it){
         ///calcula voltagem nas barras e perdas nas linhas
         backward();
 
-        cout << "\n\nperda total da rede: (" << this->soma_perdas()[0] << " , " << this->soma_perdas()[1] << ")" << endl;
-        cout << "DIFERENCA ENTRE PERDA ATUAL E ANTERIOR CALCULADA: ( " << this->soma_perdas()[0] - perdas_total[0]
-        << " , " << this->soma_perdas()[1] - perdas_total[1] << " )\n";
+//        cout << "\n\nperda total da rede: (" << this->soma_perdas()[0] << " , " << this->soma_perdas()[1] << ")" << endl;
+//        cout << "DIFERENCA ENTRE PERDA ATUAL E ANTERIOR CALCULADA: ( " << this->soma_perdas()[0] - perdas_total[0]
+//        << " , " << this->soma_perdas()[1] - perdas_total[1] << " )\n";
 
         erro = this->soma_perdas()[0] - perdas_total[0];
 
@@ -1221,6 +1220,18 @@ double Grafo::cargasPerdasRamoAtiv(No *no){
 
 void Grafo::auxcargasPerdasRamoAtiv(No *no, double &soma){
     for(Arco *a=no->listaArcos; a!=NULL; a=a->proxArco){
+
+        ///nao descer por arcos com chave aberta
+        while(a!=NULL && a->chave == false){
+            //printf("A%d\n", a->getID());
+//            printf("\nzerou [%d]a( %d , %d )", a->chave, a->noOrigem->id, a->noDestino->id);
+            a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = a->perda_reat = 0.0;
+
+            a = a->getProxArco();
+        }
+        if(a==NULL)
+            break;
+
 //        cout << "(" << a->noOrigem->id << "," << a->noDestino->id<< ")\t" << a->noDestino->id << endl;
         soma+=a->noDestino->carga + a->perda_ativ;
         auxcargasPerdasRamoAtiv(a->noDestino, soma);
@@ -1235,6 +1246,18 @@ double Grafo::cargasPerdasRamoReAtiv(No *no){
 
 void Grafo::auxcargasPerdasRamoReAtiv(No *no, double &soma){
     for(Arco *a=no->listaArcos; a!=NULL; a=a->proxArco){
+
+        ///nao descer por arcos com chave aberta
+        while(a!=NULL && a->chave == false){
+            //printf("A%d\n", a->getID());
+//            printf("\nzerou [%d]a( %d , %d )", a->chave, a->noOrigem->id, a->noDestino->id);
+            a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = a->perda_reat = 0.0;
+
+            a = a->getProxArco();
+        }
+        if(a==NULL)
+            break;
+
 //        cout << "(" << a->noOrigem->id << "," << a->noDestino->id<< ")\t" << a->noDestino->id << endl;
         soma+=a->noDestino->potencia_reativa + a->perda_reat;
         auxcargasPerdasRamoReAtiv(a->noDestino, soma);
@@ -1263,10 +1286,10 @@ void Grafo::Auxfoward(No *no, Arco *ak, u_int it){
             ///nao descer por arcos com chave aberta
             while(a!=NULL && a->chave == false){
                 //printf("A%d\n", a->getID());
-                a = a->getProxArco();
+//                printf("\nzerou [%d]a( %d , %d )", a->chave, a->noOrigem->id, a->noDestino->id);
+                a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = a->perda_reat = 0.0;
 
-                if(a!=NULL)
-                    a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = 0.0;
+                a = a->getProxArco();
             }
             if(a==NULL)
                 break;
@@ -1294,7 +1317,7 @@ void Grafo::Auxfoward(No *no, Arco *ak, u_int it){
                 if(a->noOrigem->grauSaida>1){
                     double somaAtiv=0.0, somaReAtiv=0.0;
                     for(Arco *aux=no->getListaArcos(); aux!=NULL; aux=aux->proxArco){
-                        if(aux!=a){
+                        if(aux!=a && aux->chave==true){
                             somaAtiv+=aux->perda_ativ + cargasPerdasRamoAtiv(aux->noDestino);
                             somaReAtiv+=aux->perda_reat + cargasPerdasRamoReAtiv(aux->noDestino);
 //                            cout << "a(" << a->noOrigem->id << "," << a->noDestino->id << ")";
@@ -1335,9 +1358,11 @@ void Grafo::Auxbackward(No *no, Arco *ak){
             ///nao descer por arcos com chave aberta
             while(a!=NULL && a->chave == false){
                 //printf("A%d\n", a->getID());
+//                printf("\nzerou [%d]a( %d , %d )", a->chave, a->noOrigem->id, a->noDestino->id);
+                a->fluxoP_ativ = a->fluxoP_reativ = a->perda_ativ = a->perda_reat = 0.0;
+
                 a = a->getProxArco();
             }
-
             if(a==NULL)
                 break;
 
@@ -1386,9 +1411,9 @@ void Grafo::abreFechaChavesGrafo(bool **vetChaves){
 //    cout << "feito!" << endl;
 }
 
-double Grafo::funcaoObjetivo(bool **vetChaves, u_int n_it){
+double Grafo::funcaoObjetivo(bool **vetChaves, double tol){
     this->abreFechaChavesGrafo(vetChaves);
-    this->calcula_fluxos_e_perdas(n_it);
+    this->calcula_fluxos_e_perdas(tol);
     return calculaPerdaTotal();
 }
 
@@ -1453,6 +1478,178 @@ void Grafo::auxEhArvore(No *no){
         else
             cout << "\nCICLO ENCONTRADO!";
     }
+}
+
+void Grafo::imprimeChaves(bool **chaves){
+    for(u_int i=0; i<nosEntrada.size(); i++){
+        printf("no(%d) - [ ", nosEntrada.at(i)->id);
+        for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
+            cout << chaves[i][j] << ", ";
+        cout << "]\n";
+    }
+    cout << "\n\n" << endl;
+}
+
+void Grafo::mutacao(bool **vetChaves){
+//    cout << "aplicando mutacao...";
+    u_int tam=0;
+
+    for(u_int i=0; i<nosEntrada.size(); i++)
+        tam+= nosEntrada.at(i)->volta.size();
+
+    u_int id = rand() % tam;
+
+    u_int idNo=0, pos=0;
+    for(idNo=0; pos<=id; idNo++)
+        pos+= nosEntrada.at(idNo)->volta.size();
+
+    idNo--;
+//    cout << "id nosEntrada:" << idNo << "\tid: " << id <<"\t tam: " << tam <<endl;
+//    cout << "\nidNo: " << nosEntrada.at(idNo)->id;
+    u_int idArco = rand() % nosEntrada.at(idNo)->volta.size();
+//    cout << "\tidArco: " << idArco << endl;
+
+
+    for(u_int j=0; j<nosEntrada.at(idNo)->volta.size(); j++){
+        if(j==idArco)
+            vetChaves[idNo][j] = true;
+        else
+            vetChaves[idNo][j] = false;
+    }
+//    cout << "feito!" << endl;
+}
+
+/**mantem metade dos genes do pai1 e metade do pai2
+gene = cadeia de bits de um no de entrada(grau de entrada > 1)
+**/
+bool **Grafo::cruzamento_metade(bool **pai1, bool **pai2){
+    bool **filho = new bool*[nosEntrada.size()];
+    for(u_int i=0; i<nosEntrada.size(); i++)
+        filho[i] = new bool[nosEntrada.at(i)->volta.size()];
+
+    for(u_int i=0; i<nosEntrada.size(); i++){
+        if(i%2==0){
+            for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
+                filho[i][j] = pai1[i][j];
+        }
+        else{
+            for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
+                filho[i][j] = pai2[i][j];
+        }
+    }
+    return filho;
+}
+
+vector<bool**> Grafo::populacaoInicial(u_int num_individuos){
+    cout << "gerando populacao inicial...";
+    vector<bool**> populacao;
+    for(u_int i=0; i<num_individuos; i++)
+        populacao.push_back(construtivoAleatorio());///gera uma populacao inicial inteiramente aleatoria
+
+    cout << "feito!\n\n" << endl;
+    return populacao;
+}
+
+void Grafo::proximaGeracao(vector<bool**>& populacao){
+
+    vector<bool**> proxGeracao;
+
+    cout << "gerando proxima geracao..";
+
+    u_int tamPopulacao = populacao.size()-1;
+
+    ///cruzamento 2 a 2 - i com i+1
+    for(u_int i=0; i<tamPopulacao; i++){
+        bool **filho = cruzamento_metade(populacao.at(i), populacao.at(i+1));
+
+        if(rand() % 2 == 1)
+            mutacao(filho);
+
+//        populacao.push_back(filho);
+        proxGeracao.push_back(filho);
+    }
+    ///cruzamento 2 a 2 geracao atual com nova
+    for(u_int i=0; i<tamPopulacao; i++){
+        bool **filho = cruzamento_metade(populacao.at(i), proxGeracao.at(i));
+
+        if(rand() % 2 == 1)
+            mutacao(filho);
+
+//        populacao.push_back(filho);
+        proxGeracao.push_back(filho);
+    }
+
+    populacao = proxGeracao;
+    cout << "feito!(tam=" << populacao.size() << ")";
+
+}
+
+void Grafo::sobrevivencia(vector<bool**>& populacao){
+    cout << "selecionando individuos..";
+
+    int dif = populacao.size() - (int)1.1*numeroNos;
+    if(populacao.size()>(int)1.1*numeroNos)
+        populacao.erase(populacao.begin(), populacao.begin() + dif);
+
+    cout << "feito!(tam=" << populacao.size() << ")";
+}
+
+bool **Grafo::melhorIndividuoPopulacao(vector<bool**> populacao){
+    bool **melhor = populacao.at(0);
+
+    for(u_int i=1; i<populacao.size(); i++){
+        if( funcaoObjetivo(populacao.at(i), 1e-6) < funcaoObjetivo(melhor, 1e-6) )
+            melhor = populacao.at(i);
+    }
+    return melhor;
+}
+
+bool **Grafo::algoritmoGenetico(u_int itSemMelhora){
+
+    cout << "\n\n----------ALGORITMO GENETICO----------\n\n";
+
+    ///cria populacao inicial
+    vector<bool**> populacao = populacaoInicial(this->numeroNos);
+
+
+    bool **melhorIndividuo = populacao.at(rand()%populacao.size());
+
+    cout << "melhor individuo populacao inicial: " << funcaoObjetivo(melhorIndividuoPopulacao(populacao), 1e-6) << endl;
+
+    bool **melhorIndividuoAtual;
+
+    double atual, melhor = funcaoObjetivo(melhorIndividuo, 1e-6);
+
+    u_int it = 0;
+    while(it <=itSemMelhora){
+
+        proximaGeracao(populacao);
+        sobrevivencia(populacao);
+
+        melhorIndividuoAtual = melhorIndividuoPopulacao(populacao);
+
+
+        atual = funcaoObjetivo(melhorIndividuoAtual, 1e-6);
+
+        cout << "  atual: " << atual << "  melhor:" << melhor;
+
+        ///se o melhor individuo nao sobreviveu
+        if(melhorIndividuo==NULL)
+            melhorIndividuo = melhorIndividuoAtual;
+        else if(atual < melhor){
+            melhorIndividuo = melhorIndividuoAtual;
+            it = 0;
+            cout << "         " <<melhor << " --> " << atual;
+            melhor = funcaoObjetivo(melhorIndividuo, 1e-6);
+        }else{
+            cout << "    it sem melhora: " << it <<endl;
+        }
+
+        cout << "\n";
+        it++;
+    }
+
+    return melhorIndividuo;
 }
 
 ///agora vai!--------------tem que ir

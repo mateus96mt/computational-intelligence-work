@@ -142,7 +142,7 @@ public:
     void Auxfoward(No *no, Arco *ak, u_int it);
     void backward();
     void Auxbackward(No *no, Arco *ak);
-    void calcula_fluxos_e_perdas(u_int n_it);
+    void calcula_fluxos_e_perdas(double tol);
 
     double *soma_perdas();
 
@@ -162,15 +162,32 @@ public:
     void auxcargasPerdasRamoReAtiv(No *no, double &soma);
 
     void abreFechaChavesGrafo(bool **vetChaves);
-    double funcaoObjetivo(bool **vetChaves, u_int n_it);
+    double funcaoObjetivo(bool **vetChaves, double tol);
 
+    void imprimeChaves(bool **chaves);
 
     ///CONSTRUTIVOS:
     bool **construtivoAleatorio();
 
 
 
-    ///FUNCOES DE ALGORITMO GENETICO
+    ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
+
+    void mutacao(bool **vetChaves);
+    bool **cruzamento_metade(bool **pai1, bool **pai2);
+
+    ///retorna o melhor individuo
+    bool **algoritmoGenetico(u_int itSemMelhora);
+
+    vector<bool**> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
+    void proximaGeracao(vector<bool**>&populacao);///faz cruzamentos e mutacoes
+    void sobrevivencia(vector<bool**>& populacao);///seleciona melhores individuos
+    bool **melhorIndividuoPopulacao(vector<bool**> populacao);///retorna o melhor individuo da populacao
+
+    ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
+
+
+
 
     ///agora vai!--------------tem que ir
 
