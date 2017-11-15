@@ -1,12 +1,14 @@
 #include <iostream>
 #include "Grafo.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <fstream>
-#include <limits.h>
+#include <climits>
 #include <vector>
 #include <string>
 #include <ctime>
+#include <chrono>
+#include <random>
 
 
 ///INFORMACOES DOS NOS: c;carga=potencia-ativa, p_re=potencia reativa, v=voltagem no no(nao usei pra nada ainda)
@@ -27,12 +29,34 @@ void testeGenetico();
 void testeMutacao();
 void testeCruzamento();
 void imprimeDifPerdas(Grafo *g, Grafo *h);
+void teste();
 
 int main()
 {
     srand(time(NULL));
 
+//    const int nrolls=10000;  // number of experiments
+//  const int nstars=95;     // maximum number of stars to distribute
+//  const int nintervals=10; // number of intervals
+//
+//  std::default_random_engine generator;
+//  std::uniform_real_distribution<double> distribution(0.0,1.0);
+//
+//  for (int i = 0; i < 10; i++)
+//  {
+//      double number = distribution(generator);
+//    cout << number << endl;
+//  }
+
+
+
     testeGenetico();
+
+//    teste();
+
+//    testeCruzamento();
+
+//    testeMutacao();
 
 //    testeConstrutivoAleatorio();
 
@@ -53,22 +77,46 @@ int main()
     return 0;
 }
 
+void testeGenetico(){
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    Solucao solucao = g->algoritmoGenetico(100);
+    cout << "\nmelhor genetico: " << solucao.valorObjetivo;
+
+    cout << "\n\nE solucao? " << g->verificaSolucaoValida(solucao);
+
+}
+
 void testeConstrutivoAleatorio(){
     Grafo *g = new Grafo();
 
-    char nome[] = "SISTEMA119s2 - base.m";
+    char nome[] = "SISTEMA119s2.m";
     g->leEntrada(nome);
-//    g->imprime();
+
+
+    Solucao solucao;
+    solucao.vetChaves = new bool*[g->nosEntrada.size()];
+    for(u_int i=0; i<g->nosEntrada.size(); i++)
+        solucao.vetChaves[i] = new bool[g->nosEntrada.at(i)->volta.size()];
+    for(u_int i=0; i<g->nosEntrada.size(); i++){
+        for(u_int j=0; j<g->nosEntrada.at(i)->volta.size(); j++){
+            solucao.vetChaves[i][j] = true;
+        }
+    }
+
+    cout << "\nentrada e solucao valida:" << g->verificaSolucaoValida(solucao) << endl;
+
+    solucao = g->construtivoAleatorio();
+
+
+    cout << "\n\n\nfuncao objetivo: " << solucao.valorObjetivo << endl;
 
     g->desmarcaNos();
-    g->ehArvore();
-    bool **vetChaves = g->construtivoAleatorio();
 
-
-    cout << "\n\n\nfuncao objetivo: " << g->funcaoObjetivo(vetChaves, 1e-8) << endl;
-
-    g->desmarcaNos();
-    g->ehArvore();
+    cout << "\nsolucao e valida:" << g->verificaSolucaoValida(solucao) << endl;
 
 //    g->imprime();
 }
@@ -87,13 +135,14 @@ void testes(){
     g->imprime();
 
 
-    bool **vetChaves = new bool*[g->numeroNos];
+    Solucao solucao;
+    solucao.vetChaves = new bool*[g->numeroNos];
     for(u_int i=0; i<g->numeroNos; i++){
-        vetChaves[i] = new bool[1];
-        vetChaves[i][0] = true;
+        solucao.vetChaves[i] = new bool[1];
+        solucao.vetChaves[i][0] = true;
     }
 
-    cout << "\nfuncao objetivo:" << g->funcaoObjetivo(vetChaves, 10) << endl;
+    cout << "\nfuncao objetivo:" << g->funcaoObjetivo(solucao, 1) << endl;
 
 //    g->foward(0);
 //
@@ -263,70 +312,109 @@ void testeBuscaLocal(){
     }
 }
 
-void testeGenetico(){
-
+void teste(){
 
     Grafo *g = new Grafo();
 
     char nome[] = "SISTEMA119s2.m";
     g->leEntrada(nome);
-//
-////    cout << "resultado genetico:" << g->funcaoObjetivo(g->algoritmoGenetico(100), 1e-6);
-//
-    g->buscaArco(46, 27)->chave=false;
-    g->buscaArco(17, 27)->chave=false;
-    g->buscaArco(8, 24)->chave=false;
-    g->buscaArco(54, 43)->chave=false;
-    g->buscaArco(62, 54)->chave=false;
-    g->buscaArco(37, 62)->chave=false;
-    g->buscaArco(9, 40)->chave=false;
-    g->buscaArco(58, 96)->chave=false;
-    g->buscaArco(73, 91)->chave=false;
-    g->buscaArco(88, 75)->chave=false;
-    g->buscaArco(99, 77)->chave=false;
-    g->buscaArco(108, 83)->chave=false;
-    g->buscaArco(105, 86)->chave=false;
-    g->buscaArco(110, 118)->chave=false;
-    g->buscaArco(25, 35)->chave=false;
 
-//    g->imprime();
+    for(u_int i=118; i<=132; i++){
+        Arco *a = g->buscaArcoID(i);
+        a->chave=false;
+    }
 
-//    g->imprime();
+
+//    g->buscaArcoID(24-1)->chave=false;
+//    g->buscaArcoID(27-1)->chave=false;
+//    g->buscaArcoID(35-1)->chave=false;
+//    g->buscaArcoID(40-1)->chave=false;
+//    g->buscaArcoID(43-1)->chave=false;
+//    g->buscaArcoID(52-1)->chave=false;
+//    g->buscaArcoID(59-1)->chave=false;
+//    g->buscaArcoID(72-1)->chave=false;
+//    g->buscaArcoID(75-1)->chave=false;
+//    g->buscaArcoID(96-1)->chave=false;
+//    g->buscaArcoID(99-1)->chave=false;
+//    g->buscaArcoID(110-1)->chave=false;
+//    g->buscaArcoID(123-1)->chave=false;
+//    g->buscaArcoID(130-1)->chave=false;
+//    g->buscaArcoID(131-1)->chave=false;
+
+
+//    g->buscaArcoID(24-1)->chave=false;
+//    g->buscaArcoID(26-1)->chave=false;
+//    g->buscaArcoID(35-1)->chave=false;
+//    g->buscaArcoID(40-1)->chave=false;
+//    g->buscaArcoID(43-1)->chave=false;
+//    g->buscaArcoID(51-1)->chave=false;
+//    g->buscaArcoID(61-1)->chave=false;
+//    g->buscaArcoID(72-1)->chave=false;
+//    g->buscaArcoID(75-1)->chave=false;
+//    g->buscaArcoID(96-1)->chave=false;
+//    g->buscaArcoID(98-1)->chave=false;
+//    g->buscaArcoID(110-1)->chave=false;
+//    g->buscaArcoID(122-1)->chave=false;
+//    g->buscaArcoID(130-1)->chave=false;
+//    g->buscaArcoID(131-1)->chave=false;
+
 
     g->calcula_fluxos_e_perdas(1e-8);
-//    g->foward(0);
-//    g->backward();
+    cout << "\ntensao minima:" << g->tensaoMinima();
+    cout << "\nperdaTotal: " << g->soma_perdas()[0] << endl;
+
+
+/*
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    for(u_int i=118; i<=132; i++){
+        Arco *a = g->buscaArcoID(i);
+        a->chave=false;
+//        printf("\n[%d]a( %d , %d )", a->chave, a->noOrigem->id, a->noDestino->id);
+    }
+
+    g->calcula_fluxos_e_perdas(1e-8);
+
+//    u_int n_arcos = 0;
+//    for(No *no=g->listaNos; no!=NULL; no=no->proxNo){
+//        for(Arco *a=no->listaArcos; a!=NULL; a=a->proxArco){
+//            if(a->chave==true)
+//                n_arcos++;
+//        }
+//    }
+
+    cout << "\n\nresultado rede com chaves fechadas(pu):" << g->soma_perdas()[0];
+
+    cout << "\ntensao minima(pu): " << g->tensaoMinima() << endl;
 
 //    g->imprime();
 
-//    cout << "\n\n\nMAIN    nadress: " << g->buscaArco(8, 9) << endl;
-//    printf("(8,9) - fluxo: (%f , %f)", g->buscaArco(8, 9)->fluxoP_ativ, g->buscaArco(8, 9)->fluxoP_reativ);
-
-    cout << "\nresultado rede com chaves fechadas:" << g->soma_perdas()[0];
-
-
+//    cout << "\nresultado rede com chaves fechadas(MW):" << ((n_arcos*(g->pb*g->pb)/(g->fator*g->vb*g->vb))*g->soma_perdas()[0]) << endl;
+//    cout << "\nresultado rede com chaves fechadas(KW):" << 1000*((n_arcos*(g->pb*g->pb)/(g->fator*g->vb*g->vb))*g->soma_perdas()[0]) << endl;
 //    g->imprime();
+
+
+
+
+
 
 
     Grafo *h = new Grafo();
     char nome2[] = "SISTEMA119s2 - base.m";
     h->leEntrada(nome2);
-////
+
     h->calcula_fluxos_e_perdas(1e-8);
-//    h->foward(0);
-////    h->backward();
-//
-    cout << "\nresultado entrada arvore base:" << h->soma_perdas()[0];
+
+    cout << "\n\nresultado entrada arvore base:" << h->soma_perdas()[0];
+    cout << "\ntensao minima(pu): " << h->tensaoMinima() << endl;
+
 
 //    cout << "\n\nadress: " << h->buscaArco(8, 9) << endl;
 //    printf("main(8,9) - fluxo: (%f , %f)", h->buscaArco(8, 9)->fluxoP_ativ, h->buscaArco(8, 9)->fluxoP_reativ);
-
-
-    imprimeDifPerdas(g, h);
-//    imprimeDifFluxos(g, h);
-
-
-
+*/
     cout << "\n\n\n";
 }
 
@@ -336,15 +424,16 @@ void testeMutacao(){
     char nome[] = "SISTEMA119s2.m";
     g->leEntrada(nome);
 
-    bool **vetChaves = g->construtivoAleatorio();
+    Solucao solucao = g->construtivoAleatorio();
     cout  << "individuo original:\n";
-    g->imprimeChaves(vetChaves);
+    g->imprimeChaves(solucao);
 
 
     for(int i=0; i<10; i++){
         cout << "apos mutacao:\n";
-        g->mutacao(vetChaves);
-        g->imprimeChaves(vetChaves);
+        g->mutacao(solucao);
+//        g->imprimeChaves(solucao);
+        cout << "objetivo: " << solucao.valorObjetivo << endl;
     }
 
 }
@@ -355,15 +444,22 @@ void testeCruzamento(){
     char nome[] = "SISTEMA119s2.m";
     g->leEntrada(nome);
 
-    bool **pai1 = g->construtivoAleatorio();
-    bool **pai2 = g->construtivoAleatorio();
+    Solucao pai1 = g->construtivoAleatorio();
+    Solucao pai2 = g->construtivoAleatorio();
 
     cout << "pai1:\n";
     g->imprimeChaves(pai1);
     cout << "pai2:\n";
     g->imprimeChaves(pai2);
     cout << "filho:\n";
-    g->imprimeChaves(g->cruzamento_metade(pai1, pai2));
+    Solucao filho = g->cruzamento_metade(pai1, pai2);
+    g->imprimeChaves(filho);
+
+    cout << "\npai1: " << pai1.valorObjetivo;
+    cout << "\npai2: " << pai2.valorObjetivo;
+    cout << "\nfilho: " <<filho.valorObjetivo;
+
+
 
 }
 

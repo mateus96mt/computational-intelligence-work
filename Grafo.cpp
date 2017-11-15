@@ -8,7 +8,9 @@
 #include <math.h>
 #include <map>
 #include <set>
+
 #define INFINITO HUGE_VAL
+
 
 using namespace std;
 
@@ -965,6 +967,16 @@ Arco* Grafo::buscaArco(No* no1, No* no2){
     return NULL;
 }
 
+Arco *Grafo::buscaArcoID(u_int id){
+    for(No *no=listaNos; no!=NULL; no=no->proxNo){
+        for(Arco *a=no->listaArcos; a!=NULL; a=a->proxArco){
+            if(a->id == id)
+                return a;
+        }
+    }
+    return NULL;
+}
+
 double Grafo::consultaMenorCaminhoEntreDoisNos(u_int i, u_int j){
     double **menorCaminho = algoritmoFloyd();
     return menorCaminho[i][j];
@@ -1073,7 +1085,7 @@ void Grafo::leEntrada(char nome[])
     entrada >> PB;
     entrada >> aux;entrada >> aux;
     entrada >> ZB;
-    this->pb = PB; this->vb = VB; this->zb = ZB;
+    this->pb = PB; this->vb = VB; this->zb = ZB; this->fator = fator_MW;
     cout << "\nVB: " << this->vb << "\tPB: " << this->pb << "\tZB: " << this->zb << endl;
 
 
@@ -1397,7 +1409,7 @@ void Grafo::Auxbackward(No *no, Arco *ak){
     }
 }
 
-void Grafo::abreFechaChavesGrafo(bool **vetChaves){
+void Grafo::abreFechaChavesGrafo(Solucao solucao){
 //    cout << "abrindo e fechando arcos...";
     ///para cada no com grau de entrada maior que 1
     for(u_int i=0; i<nosEntrada.size(); i++)
@@ -1405,25 +1417,25 @@ void Grafo::abreFechaChavesGrafo(bool **vetChaves){
 //        cout << "No i:" << i << endl;
         ///para cada arco que chega no no
         for(u_int j=0; j<nosEntrada.at(i)->grauEntrada; j++){
-            nosEntrada.at(i)->volta.at(j)->chave = vetChaves[i][j];
+            nosEntrada.at(i)->volta.at(j)->chave = solucao.vetChaves[i][j];
         }
     }
 //    cout << "feito!" << endl;
 }
 
-double Grafo::funcaoObjetivo(bool **vetChaves, double tol){
-    this->abreFechaChavesGrafo(vetChaves);
+double Grafo::funcaoObjetivo(Solucao solucao, double tol){
+    this->abreFechaChavesGrafo(solucao);
     this->calcula_fluxos_e_perdas(tol);
     return calculaPerdaTotal();
 }
 
 ///construtivo que gera uma arvore aleatoria
-bool **Grafo::construtivoAleatorio(){
-    bool **vetChaves;
+Solucao Grafo::construtivoAleatorio(){
+    Solucao solucao;
     if(this->nosEntrada.size() > 0){
-        vetChaves = new bool*[this->nosEntrada.size()];
+        solucao.vetChaves = new bool*[this->nosEntrada.size()];
         for(u_int i=0; i<this->nosEntrada.size(); i++){
-            vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
+            solucao.vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
         }
     }
 
@@ -1435,30 +1447,40 @@ bool **Grafo::construtivoAleatorio(){
         ///para cada arco que incide no no
         for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++){
             if(j==id)
-                vetChaves[i][j] = true;
+                solucao.vetChaves[i][j] = true;
             else
-                vetChaves[i][j] = false;
+                solucao.vetChaves[i][j] = false;
         }
     }
 
-    return vetChaves;
+    solucao.valorObjetivo = funcaoObjetivo(solucao, erro_fObjetivo);
+    return solucao;
 }
 
-void Grafo::ehArvore(){
-    cout << "\nverificando se grafo com as chaves no estado atual e uma arvore...\n";
-    auxEhArvore(listaNos);
-    cout << "\n\nfim de verificacao, se nenhuma menssagem de ciclo apareceu quer dizer que e arvore\n\n";
+bool Grafo::verificaSolucaoValida(Solucao solucao){
+    abreFechaChavesGrafo(solucao);
+
+    desmarcaNos();
+
+    bool ciclo = false;
+    u_int marcados = 0;
+
+    auxVerificaSolucaoValida(listaNos, marcados, ciclo);
+
+    if(ciclo==false && marcados==numeroNos)
+        return true;
+    else
+        return false;
 }
 
-void Grafo::auxEhArvore(No *no){
+void Grafo::auxVerificaSolucaoValida(No *no, u_int &marcados, bool &ciclo){
     if(no == NULL)
         cout<<"\n No NULL \n"<<endl;
     else{
         if(no->getMarcado() == false){
 //            cout<<"marcando: "<<no->getID()<<endl;
             no->setMarcado(true);
-            n_marcados++;
-            this->contAux++;
+            marcados++;
 //            if (funcao != NULL)
 //                (this->*funcao)(no);
             for(Arco *a=no->getListaArcos(); a!=NULL; a=a->getProxArco()){
@@ -1472,25 +1494,25 @@ void Grafo::auxEhArvore(No *no){
                 if(a==NULL)
                     break;
 
-                auxEhArvore(a->getNoDestino());
+                auxVerificaSolucaoValida(a->getNoDestino(), marcados, ciclo);
             }
         }
         else
-            cout << "\nCICLO ENCONTRADO!";
+            ciclo = true;
     }
 }
 
-void Grafo::imprimeChaves(bool **chaves){
+void Grafo::imprimeChaves(Solucao solucao){
     for(u_int i=0; i<nosEntrada.size(); i++){
         printf("no(%d) - [ ", nosEntrada.at(i)->id);
         for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
-            cout << chaves[i][j] << ", ";
+            cout << solucao.vetChaves[i][j] << ", ";
         cout << "]\n";
     }
     cout << "\n\n" << endl;
 }
 
-void Grafo::mutacao(bool **vetChaves){
+void Grafo::mutacao(Solucao &solucao){
 //    cout << "aplicando mutacao...";
     u_int tam=0;
 
@@ -1512,37 +1534,67 @@ void Grafo::mutacao(bool **vetChaves){
 
     for(u_int j=0; j<nosEntrada.at(idNo)->volta.size(); j++){
         if(j==idArco)
-            vetChaves[idNo][j] = true;
+            solucao.vetChaves[idNo][j] = true;
         else
-            vetChaves[idNo][j] = false;
+            solucao.vetChaves[idNo][j] = false;
     }
+
+    solucao.valorObjetivo = funcaoObjetivo(solucao, erro_fObjetivo);
+
+//    cout << "objetivo:" << solucao.valorObjetivo << endl;
 //    cout << "feito!" << endl;
 }
 
 /**mantem metade dos genes do pai1 e metade do pai2
 gene = cadeia de bits de um no de entrada(grau de entrada > 1)
 **/
-bool **Grafo::cruzamento_metade(bool **pai1, bool **pai2){
-    bool **filho = new bool*[nosEntrada.size()];
+Solucao Grafo::cruzamento_metade(Solucao pai1, Solucao pai2){
+    Solucao filho;
+    filho.vetChaves = new bool*[nosEntrada.size()];
+
     for(u_int i=0; i<nosEntrada.size(); i++)
-        filho[i] = new bool[nosEntrada.at(i)->volta.size()];
+        filho.vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
+
 
     for(u_int i=0; i<nosEntrada.size(); i++){
         if(i%2==0){
             for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
-                filho[i][j] = pai1[i][j];
+                filho.vetChaves[i][j] = pai1.vetChaves[i][j];
         }
         else{
             for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
-                filho[i][j] = pai2[i][j];
+                filho.vetChaves[i][j] = pai2.vetChaves[i][j];
         }
     }
+    filho.valorObjetivo = funcaoObjetivo(filho, erro_fObjetivo);
     return filho;
 }
 
-vector<bool**> Grafo::populacaoInicial(u_int num_individuos){
+Solucao Grafo::cruzamentoAleatorio(Solucao pai1, Solucao pai2){
+    Solucao filho;
+    filho.vetChaves = new bool*[nosEntrada.size()];
+
+    for(u_int i=0; i<nosEntrada.size(); i++)
+        filho.vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
+
+
+    for(u_int i=0; i<nosEntrada.size(); i++){
+        if(i%2==0 && (rand() % 2) ==0){
+            for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
+                filho.vetChaves[i][j] = pai1.vetChaves[i][j];
+        }
+        else{
+            for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++)
+                filho.vetChaves[i][j] = pai2.vetChaves[i][j];
+        }
+    }
+    filho.valorObjetivo = funcaoObjetivo(filho, erro_fObjetivo);
+    return filho;
+}
+
+vector<Solucao> Grafo::populacaoInicial(u_int num_individuos){
     cout << "gerando populacao inicial...";
-    vector<bool**> populacao;
+    vector<Solucao> populacao;
     for(u_int i=0; i<num_individuos; i++)
         populacao.push_back(construtivoAleatorio());///gera uma populacao inicial inteiramente aleatoria
 
@@ -1550,75 +1602,124 @@ vector<bool**> Grafo::populacaoInicial(u_int num_individuos){
     return populacao;
 }
 
-void Grafo::proximaGeracao(vector<bool**>& populacao){
+///ordenar do maior para o menor - melhores individuos no final
+bool melhorObjetivo(Solucao solucao1, Solucao solucao2){return solucao1.valorObjetivo > solucao2.valorObjetivo;};
 
-    vector<bool**> proxGeracao;
+void Grafo::proximaGeracao(vector<Solucao>& populacao){
 
-    cout << "gerando proxima geracao..";
+//    cout << "\nmelhor antes: " << melhorIndividuoPopulacao(populacao).valorObjetivo;
+//    cout << "\ntamanho populacao antes: " << populacao.size();
 
-    u_int tamPopulacao = populacao.size()-1;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(0.0,1.0);
 
-    ///cruzamento 2 a 2 - i com i+1
-    for(u_int i=0; i<tamPopulacao; i++){
-        bool **filho = cruzamento_metade(populacao.at(i), populacao.at(i+1));
+    vector<Solucao> proxGeracao;
 
-        if(rand() % 2 == 1)
+    sort(populacao.begin(), populacao.end(), melhorObjetivo);
+
+    ///10% dos melhores vao pra proxima geracao
+    for(u_int i=1; i<=(int)((fracMelhores)*populacao.size()); i++)
+        proxGeracao.push_back(populacao.at(populacao.size()-i));
+
+//    cout << "\npos melhroes: " << proxGeracao.size();
+//    cout << "\npop(99): " << populacao.at(99).valorObjetivo;
+//    cout << "\nmelhor proxGeracao: " << melhorIndividuoPopulacao(proxGeracao).valorObjetivo;
+
+
+//    cout << "\nMELHOR GERACAO ATUAL: " << populacao.at(99).valorObjetivo;
+//    cout << "\nMELHOR: " << melhorIndividuoPopulacao(populacao).valorObjetivo;
+
+    ///10% aleatorio vao pra proxima geracao
+//    cout << "\nde 0 a: " << (fracAleatorios)*populacao.size();
+    for(u_int i=0; i<(int)((fracAleatorios)*populacao.size()); i++){
+        u_int id = rand() % populacao.size();
+        proxGeracao.push_back(populacao.at(id));
+    }
+
+//    cout << "\npos aleatorios: " << proxGeracao.size();
+
+    u_int idPai1, idPai2;
+
+    double somaObjetivo = 0;
+
+    for(u_int i=0; i<populacao.size(); i++)
+        somaObjetivo+=populacao.at(i).valorObjetivo;
+
+    ///cruzamentos..
+    for(int j=0; j<(int)((1.0-fracAleatorios-fracMelhores)*populacao.size()); j++){
+        double corte1 = distribution(generator) * somaObjetivo;
+        double corte2 = distribution(generator) * somaObjetivo;
+
+//        cout << "\nSOMA: " << somaObjetivo << "     corte1: " << corte1 << "     corte2: " << corte2;
+
+        double soma = 0;
+        for(idPai1 = 0; soma<corte1; idPai1++){
+            soma+=populacao.at(idPai1).valorObjetivo;
+        }
+        soma = 0;
+        for(idPai2 = 0; soma<corte2; idPai2++){
+            soma+=populacao.at(idPai2).valorObjetivo;
+        }
+
+//        cout << "\nidPai1: " << idPai1 << "    idPai2: " << idPai2;
+//    cout << "\nj: " << j;
+
+
+        ///Solucao filho = cruzamento_metade(populacao.at(idPai1-1), populacao.at(idPai2-1));
+        Solucao filho = cruzamentoAleatorio(populacao.at(idPai1-1), populacao.at(idPai2-1));
+
+        if(rand() % 2 ==0)
             mutacao(filho);
 
-//        populacao.push_back(filho);
+//        cout << "    filho objetivo: " << filho.valorObjetivo;
         proxGeracao.push_back(filho);
     }
-    ///cruzamento 2 a 2 geracao atual com nova
-    for(u_int i=0; i<tamPopulacao; i++){
-        bool **filho = cruzamento_metade(populacao.at(i), proxGeracao.at(i));
-
-        if(rand() % 2 == 1)
-            mutacao(filho);
-
-//        populacao.push_back(filho);
-        proxGeracao.push_back(filho);
-    }
-
     populacao = proxGeracao;
-    cout << "feito!(tam=" << populacao.size() << ")";
+
+
+
+//    cout << "\ntamanho populacao depois: " << populacao.size();
+//    cout << "\nmelhor da populacao apos cruzamento e mutacao: " << melhorIndividuoPopulacao(populacao).valorObjetivo;
 
 }
 
-void Grafo::sobrevivencia(vector<bool**>& populacao){
-    cout << "selecionando individuos..";
+/**remove piores individuos da populacao atual**/
+void Grafo::sobrevivencia(vector<Solucao>& populacao){
 
-    int dif = populacao.size() - (int)1.1*numeroNos;
-    if(populacao.size()>(int)1.1*numeroNos)
-        populacao.erase(populacao.begin(), populacao.begin() + dif);
+    sort(populacao.begin(), populacao.end(), melhorObjetivo);
 
-    cout << "feito!(tam=" << populacao.size() << ")";
+    if(populacao.size() > tam_populacao){
+        populacao.erase( populacao.begin(), populacao.begin() + (populacao.size() - tam_populacao) );
+    }
+    cout << "\ntam: " << populacao.size();
 }
 
-bool **Grafo::melhorIndividuoPopulacao(vector<bool**> populacao){
-    bool **melhor = populacao.at(0);
+Solucao Grafo::melhorIndividuoPopulacao(vector<Solucao> populacao){
+    Solucao melhor = populacao.at(0);
 
     for(u_int i=1; i<populacao.size(); i++){
-        if( funcaoObjetivo(populacao.at(i), 1e-6) < funcaoObjetivo(melhor, 1e-6) )
+        if( populacao.at(i).valorObjetivo < melhor.valorObjetivo )
             melhor = populacao.at(i);
     }
     return melhor;
 }
 
-bool **Grafo::algoritmoGenetico(u_int itSemMelhora){
+Solucao Grafo::algoritmoGenetico(u_int itSemMelhora){
 
     cout << "\n\n----------ALGORITMO GENETICO----------\n\n";
 
     ///cria populacao inicial
-    vector<bool**> populacao = populacaoInicial(this->numeroNos);
+    vector<Solucao> populacao = populacaoInicial(tam_populacao);
 
 
-    bool **melhorIndividuo = populacao.at(rand()%populacao.size());
+    ///melhor individuo global é o melhor da populacao
+    Solucao melhorIndividuo = populacao.at(rand()%populacao.size());
 
-    cout << "melhor individuo populacao inicial: " << funcaoObjetivo(melhorIndividuoPopulacao(populacao), 1e-6) << endl;
+    cout << "melhor individuo populacao inicial: " << melhorIndividuoPopulacao(populacao).valorObjetivo << endl;
 
-    bool **melhorIndividuoAtual;
+    Solucao melhorIndividuoAtual;
 
-    double atual, melhor = funcaoObjetivo(melhorIndividuo, 1e-6);
+    double atual, melhor = melhorIndividuo.valorObjetivo;
 
     u_int it = 0;
     while(it <=itSemMelhora){
@@ -1629,18 +1730,18 @@ bool **Grafo::algoritmoGenetico(u_int itSemMelhora){
         melhorIndividuoAtual = melhorIndividuoPopulacao(populacao);
 
 
-        atual = funcaoObjetivo(melhorIndividuoAtual, 1e-6);
+        atual = melhorIndividuoAtual.valorObjetivo;
 
-        cout << "  atual: " << atual << "  melhor:" << melhor;
+        cout << "\natual: " << atual << "  melhor:" << melhor;
 
         ///se o melhor individuo nao sobreviveu
-        if(melhorIndividuo==NULL)
+        if(melhorIndividuo.vetChaves==NULL)
             melhorIndividuo = melhorIndividuoAtual;
         else if(atual < melhor){
             melhorIndividuo = melhorIndividuoAtual;
             it = 0;
             cout << "         " <<melhor << " --> " << atual;
-            melhor = funcaoObjetivo(melhorIndividuo, 1e-6);
+            melhor = melhorIndividuo.valorObjetivo;
         }else{
             cout << "    it sem melhora: " << it <<endl;
         }
@@ -1650,6 +1751,15 @@ bool **Grafo::algoritmoGenetico(u_int itSemMelhora){
     }
 
     return melhorIndividuo;
+}
+
+double Grafo::tensaoMinima(){
+    double tensao_mim = 1.0;
+    for(No *no=listaNos; no!=NULL; no=no->proxNo){
+        if(no->voltagem < tensao_mim)
+            tensao_mim = no->voltagem;
+    }
+    return tensao_mim;
 }
 
 ///agora vai!--------------tem que ir

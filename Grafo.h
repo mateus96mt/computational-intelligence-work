@@ -6,6 +6,14 @@
 #include <map>
 #include <algorithm>
 
+#define tam_populacao 100 ///tamanho
+
+#define fracAleatorios 0.1 ///fracao de individuos aleatorios que seguem para proxima geracao
+
+#define fracMelhores 0.1 ///fracao de melhores individuos que seguem para proxima geracao
+
+#define erro_fObjetivo 1e-8 ///erro de convergencia para o calculo de perdas
+
 using namespace std;
 typedef u_int u_int;
 struct Dijkstra;
@@ -14,6 +22,12 @@ bool menorPerda(Arco *a1, Arco *a2);
 bool compareReverse(u_int a, u_int b);
 bool menorfluxo(Arco *a1, Arco *a2);
 void movimentoSolucao(vector<Arco*> solucao);
+
+struct Solucao{
+    bool **vetChaves;
+    double valorObjetivo;
+};
+bool melhorObjetivo(Solucao solucao1, Solucao solucao2);
 
 class Grafo
 {
@@ -30,7 +44,7 @@ public:
     vector<No*> nosEntrada; /// nos do grafo que tem grau de entrada maior que 1
 
 
-    double pb, vb, zb;
+    double pb, vb, zb, fator;
     ///agora vai, tem que ir
 
     bool flagDir;///flag indicando se o grafo é direcionado ou não
@@ -108,6 +122,7 @@ public:
 
     Arco* buscaArco(u_int id1, u_int id2);
     Arco* buscaArco(No* no1, No* no2);
+    Arco* buscaArcoID(u_int id);
 
     double** algoritmoFloyd();
     double consultaMenorCaminhoEntreDoisNos(u_int i, u_int j);
@@ -150,8 +165,8 @@ public:
 
 
 
-    void ehArvore();
-    void auxEhArvore(No *no);
+    bool verificaSolucaoValida(Solucao solucao);
+    void auxVerificaSolucaoValida(No *no, u_int &marcados, bool &ciclo);
     ///agora vai!--------------tem que ir
 
 
@@ -161,28 +176,31 @@ public:
     double cargasPerdasRamoReAtiv(No *no);
     void auxcargasPerdasRamoReAtiv(No *no, double &soma);
 
-    void abreFechaChavesGrafo(bool **vetChaves);
-    double funcaoObjetivo(bool **vetChaves, double tol);
+    void abreFechaChavesGrafo(Solucao solucao);
+    double funcaoObjetivo(Solucao solucao, double tol);
 
-    void imprimeChaves(bool **chaves);
+    void imprimeChaves(Solucao solucao);
+
+    double tensaoMinima();
 
     ///CONSTRUTIVOS:
-    bool **construtivoAleatorio();
+    Solucao construtivoAleatorio();
 
 
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
-    void mutacao(bool **vetChaves);
-    bool **cruzamento_metade(bool **pai1, bool **pai2);
+    void mutacao(Solucao &solucao);
+    Solucao cruzamento_metade(Solucao pai1, Solucao pai2);
+    Solucao cruzamentoAleatorio(Solucao pai1, Solucao pai2);
 
     ///retorna o melhor individuo
-    bool **algoritmoGenetico(u_int itSemMelhora);
+    Solucao algoritmoGenetico(u_int itSemMelhora);
 
-    vector<bool**> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
-    void proximaGeracao(vector<bool**>&populacao);///faz cruzamentos e mutacoes
-    void sobrevivencia(vector<bool**>& populacao);///seleciona melhores individuos
-    bool **melhorIndividuoPopulacao(vector<bool**> populacao);///retorna o melhor individuo da populacao
+    vector<Solucao> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
+    void proximaGeracao(vector<Solucao>&populacao);///faz cruzamentos e mutacoes
+    void sobrevivencia(vector<Solucao>& populacao);///seleciona melhores individuos
+    Solucao melhorIndividuoPopulacao(vector<Solucao> populacao);///retorna o melhor individuo da populacao
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
