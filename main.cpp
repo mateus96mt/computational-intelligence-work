@@ -50,9 +50,9 @@ int main()
 
 
 
-    testeGenetico();
+//    testeGenetico();
 
-//    teste();
+    teste();
 
 //    testeCruzamento();
 
@@ -205,12 +205,23 @@ void imprimeVetorArcos(vector<Arco*> solucao){
 void testeFLuxos(){
     Grafo *g = new Grafo();
 
-    char nome[] = "entrada_bruno.txt";
+    char nome[] = "sist14barras.m";
     g->leEntrada(nome);
 
-    g->AtualizaFLuxos();
+    g->calcula_fluxos_e_perdas(1e-6);
+
+/*
+    g->foward(0);
+    g->backward();
+    g->imprime();
+
+    g->foward(1);*/
+//    g->backward();
+
 
     g->imprime();
+
+//    cout << "\nperdas: " << g->soma_perdas()[0] << endl;
 }
 
 void testeConstrutivo(){
@@ -361,8 +372,20 @@ void teste(){
 
     g->calcula_fluxos_e_perdas(1e-8);
     cout << "\ntensao minima:" << g->tensaoMinima();
-    cout << "\nperdaTotal: " << g->soma_perdas()[0] << endl;
+    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
 
+
+    Solucao solucao;
+    solucao.vetChaves = new bool*[g->nosEntrada.size()];
+    for(u_int i=0; i<g->nosEntrada.size(); i++)
+        solucao.vetChaves[i] = new bool[g->nosEntrada.at(i)->volta.size()];
+
+    for(u_int i=0; i<g->nosEntrada.size(); i++){
+        for(u_int j=0; j<g->nosEntrada.at(i)->volta.size(); j++){
+            solucao.vetChaves[i][j] = g->nosEntrada.at(i)->volta.at(j)->chave;
+        }
+    }
+    cout << "\n\n Eh solucao: " << g->verificaSolucaoValida(solucao);
 
 /*
     Grafo *g = new Grafo();

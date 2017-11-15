@@ -47,7 +47,7 @@ public:
     void setNoOrigem(No *no){  this->noOrigem=no; };
 
     void imprime(){
-        printf(" --|A%2d[%d]: r: %2.5f : reat: %2.5f : fat %2.5f : freat %2.5f: perda_at %2.5f :|--> (%d, %d) ", id, chave, resistencia, reatancia, fluxoP_ativ, fluxoP_reativ, perda_ativ, noOrigem->getID(), noDestino->getID());
+        printf(" --|A%2d[%d]: r: %2.7f : reat: %2.7f : fat %2.7f : freat %2.7f: perda_at %2.7f :|--> (%d, %d) ", id, chave, resistencia, reatancia, fluxoP_ativ, fluxoP_reativ, perda_ativ, noOrigem->getID(), noDestino->getID());
     }
 
 

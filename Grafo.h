@@ -156,7 +156,7 @@ public:
     void foward(u_int it);
     void Auxfoward(No *no, Arco *ak, u_int it);
     void backward();
-    void Auxbackward(No *no, Arco *ak);
+    void Auxbackward(No *no);
     void calcula_fluxos_e_perdas(double tol);
 
     double *soma_perdas();
