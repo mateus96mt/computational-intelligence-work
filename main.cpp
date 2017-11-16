@@ -30,6 +30,7 @@ void testeMutacao();
 void testeCruzamento();
 void imprimeDifPerdas(Grafo *g, Grafo *h);
 void teste();
+void testeConstrutivoKtruskal();
 
 int main()
 {
@@ -50,9 +51,11 @@ int main()
 
 
 
-//    testeGenetico();
+    testeGenetico();
 
-    teste();
+//    testeConstrutivoKtruskal();
+
+//    teste();
 
 //    testeCruzamento();
 
@@ -77,17 +80,96 @@ int main()
     return 0;
 }
 
-void testeGenetico(){
+void testeConstrutivoKtruskal(){
     Grafo *g = new Grafo();
 
     char nome[] = "SISTEMA119s2.m";
     g->leEntrada(nome);
 
-    Solucao solucao = g->algoritmoGenetico(100);
-    cout << "\nmelhor genetico: " << solucao.valorObjetivo;
+    Solucao solucao;
 
-    cout << "\n\nE solucao? " << g->verificaSolucaoValida(solucao);
+    for(u_int i=0; i<4; i++){
+        solucao = g->CONSTRUTIVO(i);
 
+        cout << "\nfuncao objetivo: " << 100*1000*solucao.valorObjetivo;
+        cout << "\neh solucao? " << g->verificaSolucaoValida(solucao);
+    }
+}
+
+void testeGenetico(){
+    ofstream saida;
+    saida.open("saida.txt");
+
+    Grafo *g = new Grafo();
+
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    Solucao solucao;
+
+//    saida << "p(0) genetico(100,0) x=c(";
+//    for(int i=0; i<10; i++){
+//        solucao = g->algoritmoGenetico(100, 0);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n";
+//
+//    saida << "p(1) genetico(100,1) x=c(";
+//    for(int i=0; i<10; i++){
+//        solucao = g->algoritmoGenetico(100, 1);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n";
+
+
+
+
+
+    saida << "p(0) c(1) genetico adaptativo(100,0,1) x=c(";
+    for(int i=0; i<10; i++){
+        solucao = g->algoritmoGeneticoAdaptativo(100, 0, 1);
+
+        if(g->verificaSolucaoValida(solucao)==true)
+            saida << 100*1000*solucao.valorObjetivo;
+        else
+            saida << "solucao invalida";
+        if(i<10-1)
+            saida << ",";
+
+    }
+    saida << ")\n";
+
+
+    saida << "p(1) c(1) genetico adaptativo(100,0,1) x=c(";
+    for(int i=0; i<10; i++){
+        solucao = g->algoritmoGeneticoAdaptativo(100, 1, 1);
+
+        if(g->verificaSolucaoValida(solucao)==true)
+            saida << 100*1000*solucao.valorObjetivo;
+        else
+            saida << "solucao invalida";
+        if(i<10-1)
+            saida << ",";
+
+    }
+    saida << ")\n";
+
+
+    saida.close();
 }
 
 void testeConstrutivoAleatorio(){

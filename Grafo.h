@@ -8,7 +8,9 @@
 
 #define tam_populacao 100 ///tamanho
 
-#define fracAleatorios 0.1 ///fracao de individuos aleatorios que seguem para proxima geracao
+#define fracAleatorios 0.05 ///fracao de individuos aleatorios que seguem para proxima geracao
+
+#define fracPiores 0.05 ///fracao dos piores que vao pra proxima geracao
 
 #define fracMelhores 0.1 ///fracao de melhores individuos que seguem para proxima geracao
 
@@ -20,7 +22,7 @@ struct Dijkstra;
 void calculaPerda(Arco *a);
 bool menorPerda(Arco *a1, Arco *a2);
 bool compareReverse(u_int a, u_int b);
-bool menorfluxo(Arco *a1, Arco *a2);
+bool menorResistencia(Arco *a1, Arco *a2);
 void movimentoSolucao(vector<Arco*> solucao);
 
 struct Solucao{
@@ -193,18 +195,34 @@ public:
     void mutacao(Solucao &solucao);
     Solucao cruzamento_metade(Solucao pai1, Solucao pai2);
     Solucao cruzamentoAleatorio(Solucao pai1, Solucao pai2);
+    Solucao cruzamentoCorte(Solucao pai1, Solucao pai2);
+
 
     ///retorna o melhor individuo
-    Solucao algoritmoGenetico(u_int itSemMelhora);
+    Solucao algoritmoGenetico(u_int itSemMelhora, u_int tipoPopIni);
+    Solucao algoritmoGeneticoAdaptativo(u_int itSemMelhora, u_int tipoPopIni, u_int ciclos);
+
 
     vector<Solucao> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao> populacaoInicialVariada(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao> populacaoInicialCONSTRUTIVO(u_int num_individuos);///gera uma populacao inicial
+
+
+
     void proximaGeracao(vector<Solucao>&populacao);///faz cruzamentos e mutacoes
+    void proximaGeracaoAdaptativo(vector<Solucao>&populacao, int tipoCruz);///faz cruzamentos e mutacoes
+
     void sobrevivencia(vector<Solucao>& populacao);///seleciona melhores individuos
+
     Solucao melhorIndividuoPopulacao(vector<Solucao> populacao);///retorna o melhor individuo da populacao
+
+
+    Solucao CONSTRUTIVO(u_int tipo);
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
-
+    bool verificaIgualdadeSolucao(Solucao solucao1, Solucao solucao2);
+    bool contido(vector<Solucao> populacao, Solucao solucao);
 
 
     ///agora vai!--------------tem que ir
