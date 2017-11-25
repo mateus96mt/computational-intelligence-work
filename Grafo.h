@@ -16,6 +16,8 @@
 
 #define erro_fObjetivo 1e-8 ///erro de convergencia para o calculo de perdas
 
+#define por_gene_cruzSuave 80 ///80% dos genes do melhor individuo sao mantidos
+
 using namespace std;
 typedef u_int u_int;
 struct Dijkstra;
@@ -192,25 +194,24 @@ public:
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
-    void mutacao(Solucao &solucao);
+    void mutacao(Solucao &solucao, int taxa);
     Solucao cruzamento_metade(Solucao pai1, Solucao pai2);
     Solucao cruzamentoAleatorio(Solucao pai1, Solucao pai2);
     Solucao cruzamentoCorte(Solucao pai1, Solucao pai2);
+    Solucao cruzamentoSuave(Solucao pai1, Solucao pai2);
+
 
 
     ///retorna o melhor individuo
-    Solucao algoritmoGenetico(u_int itSemMelhora, u_int tipoPopIni);
-    Solucao algoritmoGeneticoAdaptativo(u_int itSemMelhora, u_int tipoPopIni, u_int ciclos);
+    Solucao algoritmoGenetico(u_int itSemMelhora, u_int tipoPopIni, int tipo_cruz, int taxa_mutacao);
+    Solucao algoritmoGeneticoAdaptativo(u_int itSemMelhora, u_int tipoPopIni, u_int ciclos, int taxa_mutacao);
 
 
     vector<Solucao> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
-    vector<Solucao> populacaoInicialVariada(u_int num_individuos);///gera uma populacao inicial
-    vector<Solucao> populacaoInicialCONSTRUTIVO(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao> populacaoInicialBuscaLocal(u_int num_individuos);///gera uma populacao inicial
 
 
-
-    void proximaGeracao(vector<Solucao>&populacao);///faz cruzamentos e mutacoes
-    void proximaGeracaoAdaptativo(vector<Solucao>&populacao, int tipoCruz);///faz cruzamentos e mutacoes
+    void proximaGeracao(vector<Solucao>&populacao, int tipoCruz, int taxa_mutacao);///faz cruzamentos e mutacoes
 
     void sobrevivencia(vector<Solucao>& populacao);///seleciona melhores individuos
 
@@ -218,6 +219,13 @@ public:
 
 
     Solucao CONSTRUTIVO(u_int tipo);
+
+    void igualaChaves(Solucao solucao, Solucao &melhor, u_int id_no);
+    void abreChave(Solucao &solucao, u_int id_no, u_int id_arco);
+    Solucao buscaLocal(Solucao solucao, u_int id1, u_int id2, u_int id3);
+    void zeraFluxosPerdas();
+    Solucao procuraMelhorSolucao(u_int it);
+    void imprimeSolucao(Solucao solucao);
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 

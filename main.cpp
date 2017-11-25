@@ -31,6 +31,8 @@ void testeCruzamento();
 void imprimeDifPerdas(Grafo *g, Grafo *h);
 void teste();
 void testeConstrutivoKtruskal();
+void buscaLocal();
+void tentaAcharMelhor();
 
 int main()
 {
@@ -50,8 +52,13 @@ int main()
 //  }
 
 
+//    tentaAcharMelhor();
+
 
     testeGenetico();
+
+
+//    buscaLocal();
 
 //    testeConstrutivoKtruskal();
 
@@ -78,6 +85,151 @@ int main()
 //    testeBuscaLocal();
 
     return 0;
+
+}
+
+void tentaAcharMelhor(){
+    Grafo *g = new Grafo();
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    Solucao melhor = g->procuraMelhorSolucao(10000000);
+
+
+
+
+    Grafo *h = new Grafo();
+    h->leEntrada(nome);
+
+    printf("\n\nfinal: %f", 100*1000*h->funcaoObjetivo(melhor, erro_fObjetivo) );
+}
+
+void buscaLocal(){
+    Grafo *g = new Grafo();
+    char nome[] = "SISTEMA119s2.m";
+    g->leEntrada(nome);
+
+    for(int i=0; i<100000; i++){
+
+        u_int id1 = rand() % g->nosEntrada.size();
+        u_int id2 = rand() % g->nosEntrada.size();
+        u_int id3 = rand() % g->nosEntrada.size();
+
+//        cout << "id1: " << id1 << "   id2: " << id2 << "   id3: " << id3 << endl;
+
+        Solucao solucao = g->buscaLocal(g->construtivoAleatorio(), id1, id2, id3);
+        if(g->verificaSolucaoValida(solucao)==false)
+            cout << "solucao invalida!" << endl;
+
+//        g->imprimeSolucao(solucao);
+    }
+
+//    g->imprime();
+//
+//    for(u_int i=118; i<=132; i++){
+//        Arco *a = g->buscaArcoID(i);
+//        a->chave=false;
+//    }
+//
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    cout << "\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+//    g->zeraFluxosPerdas();
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    cout << "\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+//    g->zeraFluxosPerdas();
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    cout << "\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+//    g->zeraFluxosPerdas();
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    cout << "\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+//    g->zeraFluxosPerdas();
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    cout << "\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+//
+//
+//
+//
+//
+//    Solucao solucao;
+//    solucao.vetChaves = new bool*[g->nosEntrada.size()];
+//    for(int i=0; i<g->nosEntrada.size(); i++){
+//        solucao.vetChaves[i] = new bool[g->nosEntrada.at(i)->volta.size()];
+//        for(int j=0; j<g->nosEntrada.at(i)->volta.size(); j++)
+//            solucao.vetChaves[i][j] = g->nosEntrada.at(i)->volta.at(j)->chave;
+//    }
+//    g->zeraFluxosPerdas();
+//    g->calcula_fluxos_e_perdas(1e-8);
+//    g->abreFechaChavesGrafo(solucao);
+//    cout << "\n\n\n\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*g->soma_perdas()[0] << endl;
+//
+////    g->zeraFluxosPerdas();
+//    double objetivo = g->funcaoObjetivo(solucao, erro_fObjetivo);
+//    cout << "\n\n\n\ntensao minima:" << g->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*objetivo << endl;
+//
+//
+//    Grafo *h = new Grafo();
+//    h->leEntrada(nome);
+//
+//    objetivo = h->funcaoObjetivo(solucao, erro_fObjetivo);
+//    cout << "\n\n\n\ntensao minima:" << h->tensaoMinima();
+//    cout << "\nperdaTotal: " << 100*1000*objetivo << endl;
+
+//
+//
+//
+//
+//
+//
+//    Solucao solucao = g->construtivoAleatorio();
+//
+//    cout << "perda total: " << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+//
+////    g->zeraFluxosPerdas();
+////    g->calcula_fluxos_e_perdas(erro_fObjetivo);
+//    cout << "perda total: " << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+//
+////    g->zeraFluxosPerdas();
+////    g->calcula_fluxos_e_perdas(erro_fObjetivo);
+//    cout << "perda total: " << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+//
+//
+//    Grafo *h = new Grafo();
+//    h->leEntrada(nome);
+//    h->abreFechaChavesGrafo(solucao);
+//    h->calcula_fluxos_e_perdas(erro_fObjetivo);
+//    cout << "perda total: " << 100*1000*h->soma_perdas()[0] << endl;
+//
+//    Grafo *l = new Grafo();
+//    l->leEntrada(nome);
+//    l->abreFechaChavesGrafo(solucao);
+//    l->calcula_fluxos_e_perdas(erro_fObjetivo);
+//    cout << "perda total: " << 100*1000*l->soma_perdas()[0] << endl;
+
+//    cout << "fobj:" << 100*1000*solucao.valorObjetivo << endl;
+//    cout << "fobj:" << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+//    cout << "fobj:" << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+//    cout << "fobj:" << 100*1000*g->funcaoObjetivo(solucao, erro_fObjetivo) << endl;
+
+//    Solucao solucao = g->construtivoAleatorio();
+//
+//    cout << "fobj:" << 100*1000*solucao.valorObjetivo << endl;
+//
+//    Solucao melhor = g->buscaLocal(solucao, 0, 1, 2);
+//
+//    cout << "fobj:" << 100*1000*melhor.valorObjetivo << endl;
+
 }
 
 void testeConstrutivoKtruskal(){
@@ -97,6 +249,8 @@ void testeConstrutivoKtruskal(){
 }
 
 void testeGenetico(){
+    int num_exec = 10;
+
     ofstream saida;
     saida.open("saida.txt");
 
@@ -107,41 +261,9 @@ void testeGenetico(){
 
     Solucao solucao;
 
-//    saida << "p(0) genetico(100,0) x=c(";
-//    for(int i=0; i<10; i++){
-//        solucao = g->algoritmoGenetico(100, 0);
-//
-//        if(g->verificaSolucaoValida(solucao)==true)
-//            saida << 100*1000*solucao.valorObjetivo;
-//        else
-//            saida << "solucao invalida";
-//        if(i<10-1)
-//            saida << ",";
-//
-//    }
-//    saida << ")\n";
-//
-//    saida << "p(1) genetico(100,1) x=c(";
-//    for(int i=0; i<10; i++){
-//        solucao = g->algoritmoGenetico(100, 1);
-//
-//        if(g->verificaSolucaoValida(solucao)==true)
-//            saida << 100*1000*solucao.valorObjetivo;
-//        else
-//            saida << "solucao invalida";
-//        if(i<10-1)
-//            saida << ",";
-//
-//    }
-//    saida << ")\n";
-
-
-
-
-
-    saida << "p(0) c(1) genetico adaptativo(100,0,1) x=c(";
-    for(int i=0; i<10; i++){
-        solucao = g->algoritmoGeneticoAdaptativo(100, 0, 1);
+    saida << "(100it, popAle, cruz_metade, taxa_mut 5)\nx=c(";
+    for(int i=0; i<num_exec; i++){
+        solucao = g->algoritmoGenetico(100, 0, 0, 5);
 
         if(g->verificaSolucaoValida(solucao)==true)
             saida << 100*1000*solucao.valorObjetivo;
@@ -151,12 +273,14 @@ void testeGenetico(){
             saida << ",";
 
     }
-    saida << ")\n";
+    saida << "\n\n";
 
 
-    saida << "p(1) c(1) genetico adaptativo(100,0,1) x=c(";
-    for(int i=0; i<10; i++){
-        solucao = g->algoritmoGeneticoAdaptativo(100, 1, 1);
+    cout << "\n\n" << endl;
+
+    saida << "(100it, popBuscaLocal, cruz_metade, taxa_mut 5)\nx=c(";
+    for(int i=0; i<num_exec; i++){
+        solucao = g->algoritmoGenetico(100, 1, 0, 5);
 
         if(g->verificaSolucaoValida(solucao)==true)
             saida << 100*1000*solucao.valorObjetivo;
@@ -166,7 +290,178 @@ void testeGenetico(){
             saida << ",";
 
     }
-    saida << ")\n";
+    saida << ")\n\n";
+
+
+    saida << "(100it, popBuscaLocal, cruz_aleatorio, taxa_mut 5)\nx=c(";
+    for(int i=0; i<num_exec; i++){
+        solucao = g->algoritmoGenetico(100, 1, 1, 5);
+
+        if(g->verificaSolucaoValida(solucao)==true)
+            saida << 100*1000*solucao.valorObjetivo;
+        else
+            saida << "solucao invalida";
+        if(i<10-1)
+            saida << ",";
+
+    }
+    saida << ")\n\n";
+
+
+    saida << "(1000it, popBuscaLocal, cruz_aleatorio, taxa_mut 5)\nx=c(";
+    for(int i=0; i<num_exec; i++){
+        solucao = g->algoritmoGenetico(100, 1, 1, 5);
+
+        if(g->verificaSolucaoValida(solucao)==true)
+            saida << 100*1000*solucao.valorObjetivo;
+        else
+            saida << "solucao invalida";
+        if(i<10-1)
+            saida << ",";
+
+    }
+    saida << ")\n\n";
+
+
+    saida << "alternado(1000it, popBuscaLocal, 5ciclos, taxa_mut 5)\nx=c(";
+    for(int i=0; i<num_exec; i++){
+        solucao = g->algoritmoGeneticoAdaptativo(50, 1, 5, 5);
+
+        if(g->verificaSolucaoValida(solucao)==true)
+            saida << 100*1000*solucao.valorObjetivo;
+        else
+            saida << "solucao invalida";
+        if(i<10-1)
+            saida << ",";
+
+    }
+    saida << ")\n\n";
+
+//
+//
+//
+//    saida << "(100it, popAle, cruz_metade, taxa_mut 50)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGenetico(100, 0, 0, 50);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//
+//    saida << "(100it, popAle, cruz_metade, taxa_mut 100)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGenetico(100, 0, 0, 100);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//
+//    saida << "(100it, popAle, cruz_suave, taxa_mut 5)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGenetico(100, 0, 3, 5);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//
+//    saida << "(100it, popAle, cruz_suave, taxa_mut 50)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGenetico(100, 0, 3, 50);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//    saida << "(100it, popAle, cruz_suave, taxa_mut 100)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGenetico(100, 0, 3, 100);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//    saida << "Adpt(50it, popAle, ciclo2, taxa_mut 5)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGeneticoAdaptativo(50, 0, 2, 5);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//    saida << "Adpt(50it, popAle, ciclo2, taxa_mut 50)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGeneticoAdaptativo(50, 0, 2, 50);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
+//
+//    saida << "Adpt(50it, popAle, ciclo2, taxa_mut 100)\nx=c(";
+//    for(int i=0; i<num_exec; i++){
+//        solucao = g->algoritmoGeneticoAdaptativo(50, 0, 2, 100);
+//
+//        if(g->verificaSolucaoValida(solucao)==true)
+//            saida << 100*1000*solucao.valorObjetivo;
+//        else
+//            saida << "solucao invalida";
+//        if(i<10-1)
+//            saida << ",";
+//
+//    }
+//    saida << ")\n\n";
+//
 
 
     saida.close();
@@ -536,7 +831,7 @@ void testeMutacao(){
 
     for(int i=0; i<10; i++){
         cout << "apos mutacao:\n";
-        g->mutacao(solucao);
+        g->mutacao(solucao, 50);
 //        g->imprimeChaves(solucao);
         cout << "objetivo: " << solucao.valorObjetivo << endl;
     }
