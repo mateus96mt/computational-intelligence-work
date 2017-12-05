@@ -15,6 +15,9 @@ public:
 
     bool chave;
 
+    double f_pativ_min, f_preat_min;///informacoes de fluxo minimo ja conhecido na rede
+    double perda_ativ_min, perda_reat_min;///informacoes de perdas minimas
+
 
     double fluxoP_ativ, fluxoP_reativ;
     ///rextricoes de fluxoP_ativ
@@ -30,6 +33,8 @@ public:
         this->fluxoP_ativ=0.0;
         this->fluxoP_reativ=0.0;
         this->perda_ativ = this->perda_reat = 0.0;
+        this->f_pativ_min = 0.0; this->f_preat_min = 0.0;
+        this->perda_ativ_min = 0.0; this->perda_reat_min = 0.0;
     };
 
     double getfluxoP_ativ(){   return fluxoP_ativ;    };

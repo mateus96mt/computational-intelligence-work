@@ -8,8 +8,6 @@
 
 #define tam_populacao 100 ///tamanho
 
-#define fracAleatorios 0.05 ///fracao de individuos aleatorios que seguem para proxima geracao
-
 #define fracPiores 0.05 ///fracao dos piores que vao pra proxima geracao
 
 #define fracMelhores 0.1 ///fracao de melhores individuos que seguem para proxima geracao
@@ -20,18 +18,13 @@
 
 using namespace std;
 typedef u_int u_int;
-struct Dijkstra;
-void calculaPerda(Arco *a);
-bool menorPerda(Arco *a1, Arco *a2);
-bool compareReverse(u_int a, u_int b);
-bool menorResistencia(Arco *a1, Arco *a2);
-void movimentoSolucao(vector<Arco*> solucao);
 
 struct Solucao{
     bool **vetChaves;
     double valorObjetivo;
 };
-bool melhorObjetivo(Solucao solucao1, Solucao solucao2);
+
+bool melhorObjetivo(Solucao *solucao1, Solucao *solucao2);
 
 class Grafo
 {
@@ -169,7 +162,7 @@ public:
 
 
 
-    bool verificaSolucaoValida(Solucao solucao);
+    bool verificaSolucaoValida(Solucao *solucao);
     void auxVerificaSolucaoValida(No *no, u_int &marcados, bool &ciclo);
     ///agora vai!--------------tem que ir
 
@@ -180,60 +173,63 @@ public:
     double cargasPerdasRamoReAtiv(No *no);
     void auxcargasPerdasRamoReAtiv(No *no, double &soma);
 
-    void abreFechaChavesGrafo(Solucao solucao);
-    double funcaoObjetivo(Solucao solucao, double tol);
+    void abreFechaChavesGrafo(Solucao *solucao);
+    double funcaoObjetivo(Solucao *solucao, double tol);
 
-    void imprimeChaves(Solucao solucao);
+    void imprimeChaves(Solucao *solucao);
 
     double tensaoMinima();
 
     ///CONSTRUTIVOS:
-    Solucao construtivoAleatorio();
+    Solucao *construtivoAleatorio();
 
 
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
-    void mutacao(Solucao &solucao, int taxa);
-    Solucao cruzamento_metade(Solucao pai1, Solucao pai2);
-    Solucao cruzamentoAleatorio(Solucao pai1, Solucao pai2);
-    Solucao cruzamentoCorte(Solucao pai1, Solucao pai2);
-    Solucao cruzamentoSuave(Solucao pai1, Solucao pai2);
+    void mutacao(Solucao *solucao, int taxa);
+
+    Solucao *cruzamentoAleatorio(Solucao *pai1, Solucao *pai2);
+
+    Solucao *cruzamentoCorte(Solucao *pai1, Solucao *pai2);
+
+    Solucao *cruzamentoSuave(Solucao *pai1, Solucao *pai2);
 
 
 
     ///retorna o melhor individuo
-    Solucao algoritmoGenetico(u_int itSemMelhora, u_int tipoPopIni, int tipo_cruz, int taxa_mutacao);
-    Solucao algoritmoGeneticoAdaptativo(u_int itSemMelhora, u_int tipoPopIni, u_int ciclos, int taxa_mutacao);
+    Solucao *algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa_cruzamento);
 
 
-    vector<Solucao> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
-    vector<Solucao> populacaoInicialBuscaLocal(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao*> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao*> populacaoInicialBuscaLocal(u_int num_individuos);///gera uma populacao inicial
 
 
-    void proximaGeracao(vector<Solucao>&populacao, int tipoCruz, int taxa_mutacao);///faz cruzamentos e mutacoes
+    void proximaGeracao(vector<Solucao*> &populacao, int taxa_mutacao);///faz cruzamentos e mutacoes
 
-    void sobrevivencia(vector<Solucao>& populacao);///seleciona melhores individuos
-
-    Solucao melhorIndividuoPopulacao(vector<Solucao> populacao);///retorna o melhor individuo da populacao
+    Solucao *melhorIndividuoPopulacao(vector<Solucao*> populacao);///retorna o melhor individuo da populacao
 
 
-    Solucao CONSTRUTIVO(u_int tipo);
+    Solucao *construtivo1(bool invetido);
+    void construtivo1_flux_min(No *no);
 
-    void igualaChaves(Solucao solucao, Solucao &melhor, u_int id_no);
-    void abreChave(Solucao &solucao, u_int id_no, u_int id_arco);
-    Solucao buscaLocal(Solucao solucao, u_int id1, u_int id2, u_int id3);
+    void igualaChaves(Solucao *solucao, Solucao *melhor, u_int id_no);
+    void abreChave(Solucao *solucao, u_int id_no, u_int id_arco);
+    Solucao *buscaLocal(Solucao *solucao, u_int id1, u_int id2, u_int id3);
     void zeraFluxosPerdas();
-    Solucao procuraMelhorSolucao(u_int it);
-    void imprimeSolucao(Solucao solucao);
+    Solucao *procuraMelhorSolucao(u_int it);
+    void imprimeSolucao(Solucao *solucao);
 
     ///FUNCOES DE ALGORITMO GENETICO-----------------------------------------
 
-    bool verificaIgualdadeSolucao(Solucao solucao1, Solucao solucao2);
-    bool contido(vector<Solucao> populacao, Solucao solucao);
+    bool verificaIgualdadeSolucao(Solucao *solucao1, Solucao *solucao2);
+    bool contido(vector<Solucao*> populacao, Solucao *solucao);
 
+    void desalocaSolucao(Solucao *solucao);
 
     ///agora vai!--------------tem que ir
+
+
 
     ~Grafo();
 };
