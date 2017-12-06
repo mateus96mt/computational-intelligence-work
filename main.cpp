@@ -176,12 +176,16 @@ void testeMemoria(){
 //    }
 
     ///proxima geracao
-    vector<Solucao*> vet = g->populacaoInicial(100);
+//    vector<Solucao*> pop_anterior = g->populacaoInicial(100);
+//
+//    while(true){
+//        g->proximaGeracao(pop_anterior, 5);
+//    }
 
+    Solucao *s;
     while(true){
-        g->proximaGeracao(vet, 5);
-
-        cout << "vet.size(): " << vet.size() << endl;
+        s = g->algoritmoGenetico(1000, 5, 100);
+        g->desalocaSolucao(s);
     }
 
 }
@@ -245,7 +249,7 @@ void testeGenetico(){
         for(int i=0; i<num_exec; i++){
 
             printf("EXECUCAO %d", i+1);
-            solucao = g->algoritmoGenetico(10, 5, 100);
+            solucao = g->algoritmoGenetico(100, 5, 100);
 
             if(g->verificaSolucaoValida(solucao)==true){
                 saida << 100*1000*solucao->valorObjetivo;

@@ -1391,7 +1391,7 @@ Solucao *Grafo::cruzamentoSuave(Solucao *pai1, Solucao *pai2){
 
 
 
-    Solucao *melhor = new Solucao, *pior = new Solucao;
+    Solucao *melhor, *pior;
     if(pai1->valorObjetivo < pai2->valorObjetivo){
         melhor = pai1;
         pior = pai2;
@@ -1417,6 +1417,7 @@ Solucao *Grafo::cruzamentoSuave(Solucao *pai1, Solucao *pai2){
     }
 
     filho->valorObjetivo = funcaoObjetivo(filho, erro_fObjetivo);
+
     return filho;
 }
 
@@ -1482,23 +1483,12 @@ void Grafo::proximaGeracao(vector<Solucao*> &populacao, int taxa_mutacao){
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution(0.0,1.0);
 
-    vector<Solucao*> proxGeracao;
+    int pop_size = populacao.size();
 
     sort(populacao.begin(), populacao.end(), melhorObjetivo);
 
-    u_int num_piores =(int)((fracPiores)*populacao.size());
-    u_int num_melhores = (int)((fracMelhores)*populacao.size());
-
-    ///% dos melhores vao pra proxima geracao
-    for(u_int i=1; i<=num_melhores; i++)
-        proxGeracao.push_back(populacao.at(populacao.size()-i));
-//    cout << "\nmelhores: " << (int)((fracMelhores)*populacao.size()) << endl;
-
-    ///% piores vao pra proxima geracao
-    for(u_int i=0; i<num_piores; i++){
-        proxGeracao.push_back(populacao.at(i));
-    }
-//    cout << "\npiores: " << (int)((fracPiores)*populacao.size()) << endl;
+    u_int num_piores =(int)((fracPiores)*pop_size);
+    u_int num_melhores = (int)((fracMelhores)*pop_size);
 
     u_int idPai1, idPai2;
 
@@ -1508,14 +1498,17 @@ void Grafo::proximaGeracao(vector<Solucao*> &populacao, int taxa_mutacao){
         somaObjetivo+= 1.0 - populacao.at(i)->valorObjetivo;
 
     ///cruzamentos..
-    int num_cruz = populacao.size() - num_melhores - num_piores;
+    int num_cruz = pop_size - num_melhores - num_piores;
 //    cout << "\ncruzamento: " << num_cruz;
+    double corte1;
+    double corte2;
 
+    double soma;
     for(int j=0; j<num_cruz; j++){
-        double corte1 = distribution(generator) * somaObjetivo;
-        double corte2 = distribution(generator) * somaObjetivo;
+        corte1 = distribution(generator) * somaObjetivo;
+        corte2 = distribution(generator) * somaObjetivo;
 
-        double soma = 0;
+        soma = 0;
         for(idPai1 = 0; soma<corte1; idPai1++){
             soma+= 1.0 - populacao.at(idPai1)->valorObjetivo;
         }
@@ -1540,10 +1533,15 @@ void Grafo::proximaGeracao(vector<Solucao*> &populacao, int taxa_mutacao){
         mutacao(filho, taxa_mutacao);
 
 //        cout << "    filho objetivo: " << filho.valorObjetivo;
-        proxGeracao.push_back(filho);
+        populacao.push_back(filho);
+
+//        delete filho;
     }
 
-    populacao = proxGeracao;
+    for(u_int i=num_piores; i<pop_size-num_melhores; i++){
+        this->desalocaSolucao(populacao.at(num_piores));
+        populacao.erase(populacao.begin() + num_piores);
+    }
 
 }
 
@@ -1564,29 +1562,22 @@ Solucao *Grafo::algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa
 
     vector<Solucao*> populacao = populacaoInicialBuscaLocal(tam_populacao);
 
-    Solucao *melhorIndividuo = melhorIndividuoPopulacao(populacao), *melhorIndividuoAtual;
+    Solucao *melhorIndividuo;
 
 //    cout << "melhor individuo populacao inicial: " << melhorIndividuoPopulacao(populacao).valorObjetivo << endl;
 
     u_int it = 0;
     while(it <=itSemMelhora){
 
-//        cout << "it: " << it << endl;
+        proximaGeracao(populacao, taxa_mutacao);
 
-        proximaGeracao(populacao, 5);
+        melhorIndividuo = melhorIndividuoPopulacao(populacao);
 
-        melhorIndividuoAtual = melhorIndividuoPopulacao(populacao);
-
-        if(melhorIndividuoAtual->valorObjetivo < melhorIndividuo->valorObjetivo){
-            melhorIndividuo = melhorIndividuoAtual;
-            it = 0;
-            cout << ".\n";
-        }
-        else
-            it++;
+        it++;
     }
 
     cout << "\n";
+
     return melhorIndividuo;
 }
 
@@ -1798,6 +1789,25 @@ void Grafo::desalocaSolucao(Solucao *solucao){
     delete[] solucao->vetChaves;
 
     delete solucao;
+}
+
+Solucao *Grafo::copiaSolucao(Solucao *solucao){
+    Solucao *copia = new Solucao;
+
+    copia->vetChaves = new bool*[this->nosEntrada.size()];
+
+    for(u_int i=0; i<nosEntrada.size(); i++){
+
+        copia->vetChaves[i] = new bool[nosEntrada.at(i)->volta.size()];
+
+        for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++){
+            copia->vetChaves[i][j] = solucao->vetChaves[i][j];
+        }
+    }
+
+    copia->valorObjetivo = solucao->valorObjetivo;
+
+    return copia;
 }
 
 ///agora vai!--------------tem que ir

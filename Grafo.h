@@ -227,6 +227,9 @@ public:
 
     void desalocaSolucao(Solucao *solucao);
 
+
+    Solucao *copiaSolucao(Solucao *solucao);
+
     ///agora vai!--------------tem que ir
 
 
