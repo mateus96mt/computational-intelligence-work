@@ -182,11 +182,14 @@ void testeMemoria(){
 //        g->proximaGeracao(pop_anterior, 5);
 //    }
 
-    Solucao *s;
-    while(true){
-        s = g->algoritmoGenetico(1000, 5, 100);
-        g->desalocaSolucao(s);
-    }
+//    Solucao *s;
+//    for(int i=0; true; i++){
+//        s = g->algoritmoGenetico(1000, 5, 100);
+//        cout << "i: " << i << " funcao objetivo:  " << 100*1000*s->valorObjetivo << endl;
+//        g->desalocaSolucao(s);
+//    }
+
+    g->algoritmoGenetico(10000000, 5, 100);
 
 }
 
