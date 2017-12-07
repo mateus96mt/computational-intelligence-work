@@ -1421,7 +1421,7 @@ Solucao *Grafo::cruzamentoSuave(Solucao *pai1, Solucao *pai2){
     return filho;
 }
 
-vector<Solucao*> Grafo::populacaoInicial(u_int num_individuos){
+vector<Solucao*> Grafo::populacaoInicialAleatoria(u_int num_individuos){
 //    cout << "gerando populacao inicial...";
     vector<Solucao*> populacao;
     for(u_int i=0; i<num_individuos; i++)
@@ -1448,6 +1448,58 @@ vector<Solucao*> Grafo::populacaoInicialBuscaLocal(u_int num_individuos){
 
         this->desalocaSolucao(const_aleat);
     }
+//    cout << "feito!\n\n" << endl;
+    return populacao;
+}
+
+vector<Solucao*> Grafo::populacaoInicialCompleta(u_int num_individuos){
+    Solucao *const_aleat, *busc_loc;
+//    cout << "gerando populacao inicial...";
+    vector<Solucao*> populacao;
+
+    ///metade dos individuos gerados por busca local
+    for(u_int i=0; i<(u_int)num_individuos/2; i++){
+        u_int id1 = rand() % nosEntrada.size();
+        u_int id2 = rand() % nosEntrada.size();
+        u_int id3 = rand() % nosEntrada.size();
+
+        const_aleat = construtivoAleatorio();
+
+        busc_loc = buscaLocal( const_aleat, id1, id2, id3 );
+
+        populacao.push_back( busc_loc );///gera uma populacao inicial inteiramente aleatoria
+
+        this->desalocaSolucao( const_aleat );
+
+    }
+
+    ///metade dos individuos gerados aleatoriamente
+    for(u_int i=(int)num_individuos/2; i<num_individuos-4; i++){
+        populacao.push_back( construtivoAleatorio() );
+    }
+
+    ///2 individuos gerados pelo construtivo e construtivo inverso
+    populacao.push_back( construtivo1(0) );
+    populacao.push_back( construtivo1(1) );
+
+    u_int id1, id2, id3;
+
+    ///2 individuos gerados por busca local no construtivo e construtivo inverso
+
+    id1 = rand() % nosEntrada.size();
+    id2 = rand() % nosEntrada.size();
+    id3 = rand() % nosEntrada.size();
+    const_aleat = construtivo1(0);
+    populacao.push_back( buscaLocal( const_aleat, id1, id2, id3 ) );
+    desalocaSolucao(const_aleat);
+
+    id1 = rand() % nosEntrada.size();
+    id2 = rand() % nosEntrada.size();
+    id3 = rand() % nosEntrada.size();
+    const_aleat = construtivo1(1);
+    populacao.push_back( buscaLocal( const_aleat, id1, id2, id3 ) );
+    desalocaSolucao(const_aleat);
+
 //    cout << "feito!\n\n" << endl;
     return populacao;
 }
@@ -1556,11 +1608,20 @@ Solucao *Grafo::melhorIndividuoPopulacao(vector<Solucao*> populacao){
 }
 
 
-Solucao *Grafo::algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa_cruzamento){
+Solucao *Grafo::algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa_cruzamento, int tipoPopInicial){
 
 //    cout << "\n\n----------ALGORITMO GENETICO----------\n\n";
 
-    vector<Solucao*> populacao = populacaoInicialBuscaLocal(tam_populacao);
+    vector<Solucao*> populacao;
+
+    if(tipoPopInicial==0)
+        populacao = populacaoInicialAleatoria(tam_populacao);
+
+    if(tipoPopInicial==1)
+        populacao = populacaoInicialBuscaLocal(tam_populacao);
+
+    if(tipoPopInicial==2)
+        populacao = populacaoInicialCompleta(tam_populacao);
 
     Solucao *melhorIndividuo;
 
@@ -1571,12 +1632,19 @@ Solucao *Grafo::algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa
 
         proximaGeracao(populacao, taxa_mutacao);
 
+        for(u_int i=0; i<populacao.size(); i++)
+            cout << populacao.at(i)->valorObjetivo << endl;
+
+        cout << "\n\n";
+
         melhorIndividuo = melhorIndividuoPopulacao(populacao);
 
         it++;
+
+//        cout << "funcao objetivo: " << 100*1000*melhorIndividuo->valorObjetivo << endl;
     }
 
-    cout << "\n";
+//    cout << "\nrodou genetico...";
 
     return melhorIndividuo;
 }
@@ -1808,6 +1876,29 @@ Solucao *Grafo::copiaSolucao(Solucao *solucao){
     copia->valorObjetivo = solucao->valorObjetivo;
 
     return copia;
+}
+
+void Grafo::salvaChavesAbertas(Solucao *s, char *nomeArqSaida){
+
+    ofstream saida;
+    saida.open(nomeArqSaida);
+
+    if(verificaSolucaoValida(s)){
+        for(u_int i=0; i<nosEntrada.size(); i++){
+            for(u_int j=0; j<nosEntrada.at(i)->volta.size(); j++){
+                if(nosEntrada.at(i)->volta.at(j)->chave == false)
+                    saida << "( " << nosEntrada.at(i)->volta.at(j)->noOrigem->id <<
+                            " , " << nosEntrada.at(i)->volta.at(j)->noDestino->id << ") ["
+                                  << nosEntrada.at(i)->volta.at(j)->chave << "]\n";
+            }
+        }
+        saida << "tensao minima:  " << tensaoMinima();
+        saida << "\nvalor objetivo:  " << 100*1000*s->valorObjetivo << "\n";
+    }
+    else
+        saida << "solucao invalida!";
+
+    saida.close();
 }
 
 ///agora vai!--------------tem que ir

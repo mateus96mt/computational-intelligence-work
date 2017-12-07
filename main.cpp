@@ -150,6 +150,15 @@ void testeMemoria(){
 //        }
 //    }
 
+    ///populacao completa
+//    vector<Solucao*> vet;
+//    while(true){
+//        vet = g->populacaoInicialCompleta(100);
+//        for(int i=0; i<100; i++){
+//            g->desalocaSolucao(vet[0]);
+//            vet.erase(vet.begin());
+//        }
+//    }
 
     ///cruzamento
 //    Solucao *pai1, *pai2, *filho;
@@ -189,7 +198,24 @@ void testeMemoria(){
 //        g->desalocaSolucao(s);
 //    }
 
-    g->algoritmoGenetico(10000000, 5, 100);
+    ///genetico
+    system("mkdir saidaChavesAbertas -p");
+    char *nomeSaida = new char[100];
+
+    for(int i=0; true; i++){
+        sprintf(nomeSaida, "saidaChavesAbertas/saida%d", i);
+        Solucao *s = g->algoritmoGenetico(1000, 100, 100, 2);
+        cout << "i: " << i << "    funcaoObjetivo:" << 100*1000*s->valorObjetivo << "\n\n";
+        g->salvaChavesAbertas(s, nomeSaida);
+        g->desalocaSolucao(s);
+
+    }
+
+//    Solucao *s = g->construtivo1(0);
+//    cout << "construtivo(0): " << 100*1000*s->valorObjetivo << endl;
+//
+//    s = g->construtivo1(1);
+//    cout << "construtivo(0): " << 100*1000*s->valorObjetivo << endl;
 
 }
 
@@ -252,7 +278,7 @@ void testeGenetico(){
         for(int i=0; i<num_exec; i++){
 
             printf("EXECUCAO %d", i+1);
-            solucao = g->algoritmoGenetico(100, 5, 100);
+            solucao = g->algoritmoGenetico(100, 5, 100, 0);
 
             if(g->verificaSolucaoValida(solucao)==true){
                 saida << 100*1000*solucao->valorObjetivo;

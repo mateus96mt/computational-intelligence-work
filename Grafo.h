@@ -198,11 +198,12 @@ public:
 
 
     ///retorna o melhor individuo
-    Solucao *algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa_cruzamento);
+    Solucao *algoritmoGenetico(u_int itSemMelhora, int taxa_mutacao, int taxa_cruzamento, int tipoPopInicial);
 
 
-    vector<Solucao*> populacaoInicial(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao*> populacaoInicialAleatoria(u_int num_individuos);///gera uma populacao inicial
     vector<Solucao*> populacaoInicialBuscaLocal(u_int num_individuos);///gera uma populacao inicial
+    vector<Solucao*> populacaoInicialCompleta(u_int num_individuos);///gera uma populacao inicial
 
 
     void proximaGeracao(vector<Solucao*> &populacao, int taxa_mutacao);///faz cruzamentos e mutacoes
@@ -229,6 +230,8 @@ public:
 
 
     Solucao *copiaSolucao(Solucao *solucao);
+
+    void salvaChavesAbertas(Solucao *s, char *nomeArqSaida);
 
     ///agora vai!--------------tem que ir
 
